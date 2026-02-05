@@ -105,18 +105,26 @@ export default function Header() {
                             {/* User Desktop */}
                             <div
                                 className="relative hidden lg:block"
-                                onMouseEnter={() => setUserMenuAbierto(true)}
+                                onMouseEnter={() => estaAutenticado && setUserMenuAbierto(true)}
                                 onMouseLeave={() => setUserMenuAbierto(false)}
                             >
-                                <button
-                                    onClick={() => !estaAutenticado && abrirModal('login')}
-                                    className={`p-2.5 rounded-lg transition-colors ${estaAutenticado
-                                        ? 'text-teal-400 bg-teal-500/10'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/10'
-                                        }`}
-                                >
-                                    <User className="w-5 h-5" />
-                                </button>
+                                {estaAutenticado ? (
+                                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 transition-colors">
+                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-black font-bold text-sm">
+                                            {usuario?.nombre?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="text-sm font-medium max-w-[100px] truncate">{usuario?.nombre?.split(' ')[0]}</span>
+                                        <ChevronDown className="w-4 h-4" />
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => abrirModal('login')}
+                                        className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-400 text-black font-bold rounded-lg transition-colors"
+                                    >
+                                        <User className="w-4 h-4" />
+                                        Conectarse
+                                    </button>
+                                )}
 
                                 <AnimatePresence>
                                     {estaAutenticado && userMenuAbierto && (
@@ -131,9 +139,9 @@ export default function Header() {
                                                 <p className="text-sm text-gray-500 truncate">{usuario?.email}</p>
                                             </div>
                                             <div className="py-2">
-                                                <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-teal-400 hover:bg-white/5">
+                                                <Link href="/mis-pedidos" className="flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-teal-400 hover:bg-white/5">
                                                     <Package className="w-4 h-4" /> Mis Pedidos
-                                                </a>
+                                                </Link>
                                                 <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-teal-400 hover:bg-white/5">
                                                     <Heart className="w-4 h-4" /> Favoritos
                                                 </a>
