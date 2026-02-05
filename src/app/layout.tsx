@@ -4,6 +4,7 @@ import "./globals.css";
 import { CarritoProvider } from "@/context/CarritoContext";
 import { UsuarioProvider } from "@/context/UsuarioContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import ModalUsuario from "@/components/ModalUsuario";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,12 +22,13 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={`${inter.className} antialiased bg-gray-50 dark:bg-black transition-colors duration-300`}>
         <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <UsuarioProvider>
+            <ModalUsuario />
             <CarritoProvider>
               {children}
             </CarritoProvider>
