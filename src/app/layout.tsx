@@ -5,6 +5,7 @@ import { CarritoProvider } from "@/context/CarritoContext";
 import { UsuarioProvider } from "@/context/UsuarioContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ModalUsuario from "@/components/ModalUsuario";
+import CuponListener from "@/components/CuponListener";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({
           <UsuarioProvider>
             <ModalUsuario />
             <CarritoProvider>
+              <CuponListener />
               {children}
             </CarritoProvider>
           </UsuarioProvider>

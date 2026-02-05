@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Obtener secciones activas ordenadas para el homepage
 export async function GET() {
     try {

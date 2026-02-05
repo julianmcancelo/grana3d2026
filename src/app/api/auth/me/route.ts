@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import jwt from 'jsonwebtoken'
+import { verifyToken } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
     try {
-        const authHeader = request.headers.get('authorization')
-        if (!authHeader?.startsWith('Bearer ')) {
+        // Intentar leer de header o cookie
+        const tokenHeader = request.headers.get('Authorization')?.replace('Bearer ', '')
+        const tokenCookie = request.cookies.get('token')?.value
+        const token = tokenHeader || tokenCookie
+
+        if (!token) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
         }
 
-        const token = authHeader.substring(7)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { id: string }
+        const decoded = await verifyToken(token) as { id: string } | null
+
+        if (!decoded) {
+            return NextResponse.json({ error: 'Token inválido' }, { status: 401 })
+        }
 
         const usuario = await prisma.usuario.findUnique({
             where: { id: decoded.id },
@@ -21,6 +28,6 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ usuario })
     } catch (error) {
-        return NextResponse.json({ error: 'Token inválido' }, { status: 401 })
+        return NextResponse.json({ error: 'Error de autenticación' }, { status: 500 })
     }
 }

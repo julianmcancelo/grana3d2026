@@ -70,10 +70,18 @@ model Pedido {
   metodoPago        MetodoPago   @default(EFECTIVO)
   metodoEnvio       MetodoEnvio?
   items             Json
+  origen            OrigenPedido @default(WEB)
   usuarioId         String?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
   usuario           Usuario?     @relation(fields: [usuarioId], references: [id])
+}
+
+enum OrigenPedido {
+  WEB
+  MERCADOLIBRE
+  INSTAGRAM
+  LOCAL
 }
 
 model Banner {
@@ -94,6 +102,20 @@ model Banner {
   activo      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime
+}
+
+model PromoBanner {
+  id          String   @id @default(cuid())
+  titulo      String
+  descripcion String?
+  etiqueta    String?
+  link        String?
+  textoBoton  String?
+  colorFondo  String   @default("from-gray-800 to-gray-900")
+  orden       Int      @default(0)
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Configuracion {

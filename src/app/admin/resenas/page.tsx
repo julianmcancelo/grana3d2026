@@ -1,10 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-    Plus, Star, Edit2, Trash2, Eye, EyeOff,
-    X, Loader2, User, Search
-} from 'lucide-react'
+import { Save, Plus, Trash2, Edit2, Star, Check, X, Eye, EyeOff, Loader2 } from 'lucide-react'
 import api from '@/lib/api'
 import Swal from 'sweetalert2'
 
@@ -13,7 +10,7 @@ interface Resena {
     nombre: string
     texto: string
     rating: number
-    imagen?: string
+    imagen: string | null
     activa: boolean
     orden: number
 }
@@ -21,14 +18,15 @@ interface Resena {
 export default function AdminResenas() {
     const [resenas, setResenas] = useState<Resena[]>([])
     const [loading, setLoading] = useState(true)
-    const [modalAbierto, setModalAbierto] = useState(false)
+    const [modalOpen, setModalOpen] = useState(false)
     const [editando, setEditando] = useState<Resena | null>(null)
-    const [busqueda, setBusqueda] = useState('')
-    const [formData, setFormData] = useState({
+    const [saving, setSaving] = useState(false)
+
+    const [form, setForm] = useState({
         nombre: '',
         texto: '',
         rating: 5,
-        imagen: ''
+        activa: true
     })
 
     useEffect(() => {
@@ -37,59 +35,64 @@ export default function AdminResenas() {
 
     const cargarResenas = async () => {
         try {
-            const res = await api.get('/admin/resenas')
-            setResenas(res.data)
+            const { data } = await api.get('/admin/resenas')
+            setResenas(data)
         } catch (error) {
-            console.error('Error:', error)
+            console.error(error)
         } finally {
             setLoading(false)
         }
     }
 
-    const guardarResena = async () => {
+    const abrirModal = (resena?: Resena) => {
+        if (resena) {
+            setEditando(resena)
+            setForm({
+                nombre: resena.nombre,
+                texto: resena.texto,
+                rating: resena.rating,
+                activa: resena.activa
+            })
+        } else {
+            setEditando(null)
+            setForm({ nombre: '', texto: '', rating: 5, activa: true })
+        }
+        setModalOpen(true)
+    }
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setSaving(true)
         try {
             if (editando) {
-                await api.put(`/admin/resenas/${editando.id}`, formData)
-                setResenas(prev => prev.map(r => r.id === editando.id ? { ...r, ...formData } : r))
+                const { data } = await api.put(`/admin/resenas/${editando.id}`, form)
+                setResenas(prev => prev.map(r => r.id === editando.id ? data : r))
             } else {
-                const res = await api.post('/admin/resenas', formData)
-                setResenas(prev => [...prev, res.data])
+                const { data } = await api.post('/admin/resenas', form)
+                setResenas(prev => [...prev, data])
             }
-            cerrarModal()
+            setModalOpen(false)
             Swal.fire({
-                toast: true,
-                position: 'top-end',
                 icon: 'success',
                 title: editando ? 'Reseña actualizada' : 'Reseña creada',
-                showConfirmButton: false,
-                timer: 2000,
-                background: '#1f2937',
-                color: '#fff'
+                timer: 1500, showConfirmButton: false,
+                background: '#1f2937', color: '#fff'
             })
         } catch (error) {
-            console.error('Error:', error)
+            Swal.fire({ icon: 'error', title: 'Error al guardar', background: '#1f2937', color: '#fff' })
+        } finally {
+            setSaving(false)
         }
     }
 
-    const toggleActiva = async (id: string, activa: boolean) => {
-        try {
-            await api.put(`/admin/resenas/${id}`, { activa: !activa })
-            setResenas(prev => prev.map(r => r.id === id ? { ...r, activa: !activa } : r))
-        } catch (error) {
-            console.error('Error:', error)
-        }
-    }
-
-    const eliminarResena = async (id: string) => {
+    const eliminar = async (id: string) => {
         const result = await Swal.fire({
             title: '¿Eliminar reseña?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             confirmButtonText: 'Eliminar',
-            cancelButtonText: 'Cancelar',
-            background: '#1f2937',
-            color: '#fff'
+            background: '#1f2937', color: '#fff'
         })
 
         if (result.isConfirmed) {
@@ -97,132 +100,75 @@ export default function AdminResenas() {
                 await api.delete(`/admin/resenas/${id}`)
                 setResenas(prev => prev.filter(r => r.id !== id))
             } catch (error) {
-                console.error('Error:', error)
+                console.error(error)
             }
         }
     }
 
-    const abrirEditar = (resena: Resena) => {
-        setEditando(resena)
-        setFormData({
-            nombre: resena.nombre,
-            texto: resena.texto,
-            rating: resena.rating,
-            imagen: resena.imagen || ''
-        })
-        setModalAbierto(true)
+    const toggleActiva = async (resena: Resena) => {
+        try {
+            const nuevoEstado = !resena.activa
+            await api.put(`/admin/resenas/${resena.id}`, { activa: nuevoEstado })
+            setResenas(prev => prev.map(r => r.id === resena.id ? { ...r, activa: nuevoEstado } : r))
+        } catch (error) {
+            console.error(error)
+        }
     }
 
-    const cerrarModal = () => {
-        setModalAbierto(false)
-        setEditando(null)
-        setFormData({ nombre: '', texto: '', rating: 5, imagen: '' })
-    }
-
-    const resenasFiltradas = resenas.filter(r =>
-        r.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-        r.texto.toLowerCase().includes(busqueda.toLowerCase())
-    )
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
-            </div>
-        )
-    }
+    if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-teal-500" /></div>
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-black text-white">Reseñas de Clientes</h1>
-                    <p className="text-gray-400 mt-1">{resenas.length} reseñas</p>
+                    <h1 className="text-3xl font-bold text-white mb-2">Reseñas de Clientes</h1>
+                    <p className="text-gray-400">Gestiona los testimonios que aparecen en la home</p>
                 </div>
                 <button
-                    onClick={() => setModalAbierto(true)}
+                    onClick={() => abrirModal()}
                     className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-400 text-black font-bold rounded-xl transition-colors"
                 >
-                    <Plus className="w-5 h-5" />
-                    Nueva Reseña
+                    <Plus size={20} /> Nueva Reseña
                 </button>
             </div>
 
-            {/* Search */}
-            <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                    type="text"
-                    placeholder="Buscar reseñas..."
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-teal-500"
-                />
-            </div>
-
-            {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {resenasFiltradas.map((resena) => (
+                {resenas.map(resena => (
                     <motion.div
                         key={resena.id}
                         layout
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className={`p-6 rounded-2xl border transition-all ${resena.activa
-                                ? 'bg-gray-800 border-gray-700'
-                                : 'bg-gray-800/50 border-gray-800 opacity-60'
-                            }`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className={`bg-gray-900 border rounded-2xl p-6 ${resena.activa ? 'border-gray-700' : 'border-gray-800 opacity-60'}`}
                     >
-                        {/* Rating */}
-                        <div className="flex gap-1 mb-3">
-                            {[...Array(5)].map((_, i) => (
-                                <Star
-                                    key={i}
-                                    className={`w-4 h-4 ${i < resena.rating
-                                            ? 'fill-yellow-400 text-yellow-400'
-                                            : 'fill-gray-600 text-gray-600'
-                                        }`}
-                                />
-                            ))}
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="flex gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} size={16}
+                                        className={i < resena.rating ? "text-yellow-500 fill-yellow-500" : "text-gray-700"}
+                                    />
+                                ))}
+                            </div>
+                            <div className="flex gap-1">
+                                <button onClick={() => abrirModal(resena)} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-blue-400">
+                                    <Edit2 size={16} />
+                                </button>
+                                <button onClick={() => toggleActiva(resena)} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-teal-400">
+                                    {resena.activa ? <Eye size={16} /> : <EyeOff size={16} />}
+                                </button>
+                                <button onClick={() => eliminar(resena.id)} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-red-400">
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Text */}
-                        <p className="text-gray-300 text-sm line-clamp-3 mb-4">"{resena.texto}"</p>
+                        <p className="text-gray-300 mb-4 line-clamp-3 italic">"{resena.texto}"</p>
 
-                        {/* Author */}
-                        <div className="flex items-center gap-3 mb-4">
-                            {resena.imagen ? (
-                                <img src={resena.imagen} alt={resena.nombre} className="w-10 h-10 rounded-full object-cover" />
-                            ) : (
-                                <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
-                                    <User className="w-5 h-5 text-teal-500" />
-                                </div>
-                            )}
-                            <span className="font-bold text-white">{resena.nombre}</span>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-2 pt-4 border-t border-gray-700">
-                            <button
-                                onClick={() => abrirEditar(resena)}
-                                className="flex-1 flex items-center justify-center gap-2 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                            >
-                                <Edit2 className="w-4 h-4" /> Editar
-                            </button>
-                            <button
-                                onClick={() => toggleActiva(resena.id, resena.activa)}
-                                className={`p-2 rounded-lg transition-colors ${resena.activa ? 'text-yellow-500 hover:bg-yellow-500/10' : 'text-gray-500 hover:text-green-500'
-                                    }`}
-                            >
-                                {resena.activa ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                            </button>
-                            <button
-                                onClick={() => eliminarResena(resena.id)}
-                                className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-500 font-bold text-xs">
+                                {resena.nombre.charAt(0)}
+                            </div>
+                            <div className="text-sm font-bold text-white">{resena.nombre}</div>
                         </div>
                     </motion.div>
                 ))}
@@ -230,88 +176,74 @@ export default function AdminResenas() {
 
             {/* Modal */}
             <AnimatePresence>
-                {modalAbierto && (
-                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                {modalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
+                            initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="bg-gray-900 rounded-2xl p-6 w-full max-w-lg border border-gray-700"
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-gray-900 border border-gray-700 w-full max-w-lg rounded-2xl p-6"
                         >
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-bold text-white">
-                                    {editando ? 'Editar Reseña' : 'Nueva Reseña'}
-                                </h2>
-                                <button onClick={cerrarModal} className="p-2 hover:bg-white/10 rounded-lg text-gray-400">
-                                    <X className="w-5 h-5" />
-                                </button>
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold">{editando ? 'Editar Reseña' : 'Nueva Reseña'}</h3>
+                                <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-white"><X /></button>
                             </div>
 
-                            <div className="space-y-4">
+                            <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-2">Nombre del cliente</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-2">Nombre Cliente</label>
                                     <input
-                                        type="text"
-                                        value={formData.nombre}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                                        required
+                                        value={form.nombre}
+                                        onChange={e => setForm({ ...form, nombre: e.target.value })}
+                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white outline-none focus:border-teal-500"
+                                        placeholder="Juan Pérez"
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-2">Reseña</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-2">Comentario</label>
                                     <textarea
-                                        value={formData.texto}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, texto: e.target.value }))}
-                                        rows={4}
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-teal-500 resize-none"
+                                        required
+                                        value={form.texto}
+                                        onChange={e => setForm({ ...form, texto: e.target.value })}
+                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white outline-none focus:border-teal-500 h-24 resize-none"
+                                        placeholder="Escribe la reseña..."
                                     />
                                 </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-2">Rating</label>
-                                    <div className="flex gap-2">
-                                        {[1, 2, 3, 4, 5].map((n) => (
-                                            <button
-                                                key={n}
-                                                type="button"
-                                                onClick={() => setFormData(prev => ({ ...prev, rating: n }))}
-                                                className="p-2"
-                                            >
-                                                <Star className={`w-8 h-8 transition-colors ${n <= formData.rating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-600 text-gray-600'
-                                                    }`} />
-                                            </button>
-                                        ))}
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-2">Puntuación</label>
+                                        <div className="flex gap-2">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <button
+                                                    key={star}
+                                                    type="button"
+                                                    onClick={() => setForm({ ...form, rating: star })}
+                                                    className={`p-1 transition-colors ${form.rating >= star ? 'text-yellow-500 fill-yellow-500' : 'text-gray-700'}`}
+                                                >
+                                                    <Star size={24} className={form.rating >= star ? "fill-yellow-500" : ""} />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 pt-6">
+                                        <input
+                                            type="checkbox"
+                                            checked={form.activa}
+                                            onChange={e => setForm({ ...form, activa: e.target.checked })}
+                                            className="w-5 h-5 rounded border-gray-600 bg-gray-800 accent-teal-500"
+                                        />
+                                        <span className="text-gray-300">Visible en web</span>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-2">URL de imagen (opcional)</label>
-                                    <input
-                                        type="text"
-                                        value={formData.imagen}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, imagen: e.target.value }))}
-                                        placeholder="https://..."
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-teal-500"
-                                    />
+                                <div className="flex gap-3 pt-4">
+                                    <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-3 border border-gray-600 rounded-xl font-bold hover:bg-gray-800">Cancelar</button>
+                                    <button type="submit" disabled={saving} className="flex-1 py-3 bg-teal-500 text-black rounded-xl font-bold hover:bg-teal-400 disabled:opacity-50 flex justify-center items-center gap-2">
+                                        {saving ? <Loader2 className="animate-spin" /> : <Save size={18} />} Guardar
+                                    </button>
                                 </div>
-                            </div>
-
-                            <div className="flex gap-3 mt-6">
-                                <button
-                                    onClick={cerrarModal}
-                                    className="flex-1 py-3 border border-gray-600 text-gray-300 font-bold rounded-xl hover:bg-gray-800"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={guardarResena}
-                                    disabled={!formData.nombre || !formData.texto}
-                                    className="flex-1 py-3 bg-teal-500 hover:bg-teal-400 text-black font-bold rounded-xl disabled:opacity-50"
-                                >
-                                    Guardar
-                                </button>
-                            </div>
+                            </form>
                         </motion.div>
                     </div>
                 )}

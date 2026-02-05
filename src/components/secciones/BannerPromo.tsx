@@ -1,69 +1,60 @@
 "use client"
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { ChevronRight } from 'lucide-react'
 
-interface BannerPromoProps {
-    imagen?: string
-    titulo?: string
-    subtitulo?: string
+interface Banner {
+    id: string
+    titulo: string
+    descripcion?: string
+    etiqueta?: string
+    link?: string
     textoBoton?: string
-    linkBoton?: string
-    colorFondo?: string
+    colorFondo: string
+    imagen?: string // Optional if we use background image
 }
 
-export default function BannerPromo({
-    imagen,
-    titulo,
-    subtitulo,
-    textoBoton = 'Ver más',
-    linkBoton = '/tienda',
-    colorFondo = '#14b8a6'
-}: BannerPromoProps) {
+interface BannerPromoProps {
+    banners: Banner[]
+}
+
+export default function BannerPromo({ banners }: BannerPromoProps) {
+    if (!banners || banners.length === 0) return null
+
     return (
-        <section className="py-8 md:py-12">
+        <section className="py-10">
             <div className="max-w-7xl mx-auto px-4">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="relative overflow-hidden rounded-3xl"
-                    style={{ backgroundColor: colorFondo }}
-                >
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-8 md:p-12 gap-6">
-                        {/* Content */}
-                        <div className="text-center md:text-left">
-                            {subtitulo && (
-                                <span className="inline-block px-4 py-1 bg-white/20 text-white text-sm font-bold rounded-full mb-4">
-                                    {subtitulo}
-                                </span>
-                            )}
-                            <h3 className="text-3xl md:text-4xl font-black text-white mb-4">
-                                {titulo || 'Promoción Especial'}
-                            </h3>
-                            <Link
-                                href={linkBoton}
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-900 font-bold rounded-xl hover:bg-gray-100 transition-colors"
-                            >
-                                {textoBoton}
-                            </Link>
-                        </div>
-
-                        {/* Image */}
-                        {imagen && (
-                            <div className="relative w-full md:w-1/3">
-                                <img
-                                    src={imagen}
-                                    alt={titulo || 'Promoción'}
-                                    className="w-full h-auto max-h-48 object-contain"
-                                />
+                <div className="grid md:grid-cols-2 gap-6">
+                    {banners.map((banner) => (
+                        <Link
+                            key={banner.id}
+                            href={banner.link || '#'}
+                            target={banner.link?.startsWith('http') ? "_blank" : "_self"}
+                            className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${banner.colorFondo || 'from-teal-600 to-teal-800'} p-8 md:p-12 border border-white/10 group shadow-lg block hover:scale-[1.02] transition-transform`}
+                        >
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                            <div className="relative z-10">
+                                {banner.etiqueta && (
+                                    <span className="inline-block px-3 py-1 rounded bg-white/10 text-xs font-bold text-white/80 mb-4 tracking-wider uppercase">
+                                        {banner.etiqueta}
+                                    </span>
+                                )}
+                                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">{banner.titulo}</h3>
+                                {banner.descripcion && <p className="text-white/70 mb-6 max-w-xs">{banner.descripcion}</p>}
+                                {banner.textoBoton && (
+                                    <span className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg group-hover:bg-gray-100 transition-colors">
+                                        {banner.textoBoton} <ChevronRight className="w-4 h-4" />
+                                    </span>
+                                )}
                             </div>
-                        )}
-                    </div>
-
-                    {/* Decorative elements */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-                </motion.div>
+                            {banner.imagen && (
+                                <div className="absolute right-0 bottom-0 w-1/2 h-full opacity-50 mix-blend-overlay">
+                                    <img src={banner.imagen} alt="" className="w-full h-full object-cover" />
+                                </div>
+                            )}
+                        </Link>
+                    ))}
+                </div>
             </div>
         </section>
     )

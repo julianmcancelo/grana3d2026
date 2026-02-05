@@ -16,6 +16,7 @@ const menuItems = [
     { icon: Ticket, label: 'Cupones', href: '/admin/cupones' },
     { icon: Zap, label: 'Novedades', href: '/admin/novedades' },
     { icon: Image, label: 'Banners', href: '/admin/banners' },
+    { icon: Megaphone, label: 'Promo Banners', href: '/admin/promobanners' },
     { icon: LayoutGrid, label: 'Homepage', href: '/admin/homepage' },
     { icon: Star, label: 'Reseñas', href: '/admin/resenas' },
     { icon: Settings, label: 'Configuración', href: '/admin/configuracion' },
@@ -41,8 +42,8 @@ export default function AdminSidebar() {
                             key={item.href}
                             href={item.href}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                                    ? 'bg-teal-500/10 text-teal-500 font-bold'
-                                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                ? 'bg-teal-500/10 text-teal-500 font-bold'
+                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                 }`}
                         >
                             <item.icon className={`w-5 h-5 ${isActive ? 'text-teal-500' : 'text-gray-500 group-hover:text-white'}`} />

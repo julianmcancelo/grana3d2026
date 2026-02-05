@@ -3,9 +3,13 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     ShoppingBag, Search, Eye, Clock, Truck,
-    CheckCircle, XCircle, Package, ChevronDown, X, Loader2
+    CheckCircle, XCircle, Package, ChevronDown, X, Loader2, Gift,
+    Plus, Globe, Store, Instagram // Icons for Origins
 } from 'lucide-react'
 import api from '@/lib/api'
+import ModalQR from '@/components/admin/ModalQR'
+import ModalNuevoPedido from '@/components/admin/ModalNuevoPedido'
+import Swal from 'sweetalert2'
 
 interface Pedido {
     id: string
@@ -17,6 +21,7 @@ interface Pedido {
     estado: string
     metodoPago: string
     metodoEnvio?: string
+    origen?: 'WEB' | 'MERCADOLIBRE' | 'INSTAGRAM' | 'LOCAL'
     items: any[]
     createdAt: string
 }
@@ -38,6 +43,8 @@ export default function PedidosAdmin() {
     const [search, setSearch] = useState('')
     const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null)
     const [actualizando, setActualizando] = useState<string | null>(null)
+    const [qrModal, setQrModal] = useState<{ abierto: boolean; codigo: string; mensaje?: string }>({ abierto: false, codigo: '' })
+    const [modalNuevoPedido, setModalNuevoPedido] = useState(false)
 
     useEffect(() => {
         cargarPedidos()
@@ -63,6 +70,47 @@ export default function PedidosAdmin() {
             console.error('Error actualizando estado:', error)
         } finally {
             setActualizando(null)
+        }
+    }
+
+    const generarCuponRegalo = async (pedido: Pedido) => {
+        try {
+            const codigo = `REGALO-${pedido.numero}`
+            // Verificar si ya existe o crearlo.
+            try {
+                await api.post('/admin/cupones', {
+                    codigo,
+                    descripcion: `Regalo por compra #${pedido.numero}`,
+                    tipo: 'PORCENTAJE',
+                    valor: 10,
+                    minimoCompra: 0,
+                    maximoDescuento: 0,
+                    usosMaximos: 1,
+                    usosPorUsuario: 1,
+                    fechaInicio: new Date().toISOString().split('T')[0],
+                    activo: true
+                })
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Cupón Creado!',
+                    text: `Se generó el cupón ${codigo} (10% OFF)`,
+                    timer: 2000,
+                    showConfirmButton: false,
+                    background: '#1f2937', color: '#fff'
+                })
+            } catch (e: any) {
+                console.log('El cupón quizás ya existe', e)
+            }
+
+            setQrModal({
+                abierto: true,
+                codigo,
+                mensaje: `Cupón de regalo para ${pedido.nombreCliente}`
+            })
+
+        } catch (error) {
+            console.error(error)
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo generar el cupón' })
         }
     }
 
@@ -95,6 +143,12 @@ export default function PedidosAdmin() {
                     <h1 className="text-3xl font-bold mb-2">Pedidos</h1>
                     <p className="text-gray-400">{pedidos.length} pedidos en total</p>
                 </div>
+                <button
+                    onClick={() => setModalNuevoPedido(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-400 text-black font-bold rounded-xl transition-colors"
+                >
+                    <Plus className="w-5 h-5" /> Nuevo Pedido
+                </button>
             </div>
 
             {/* Stats rápidos */}
@@ -152,8 +206,19 @@ export default function PedidosAdmin() {
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center font-bold text-gray-500">
-                                        #{pedido.numero}
+                                    <div className="w-12 h-12 bg-gray-800 rounded-xl flex flex-col items-center justify-center font-bold text-gray-500 relative overflow-hidden">
+                                        <span className="z-10">#{pedido.numero}</span>
+                                        {/* Origin Indicator */}
+                                        {pedido.origen && pedido.origen !== 'WEB' && (
+                                            <div className="absolute inset-0 opacity-20 z-0 flex items-center justify-center">
+                                                {pedido.origen === 'MERCADOLIBRE' && <ShoppingBag className="w-8 h-8 text-yellow-500" />}
+                                                {pedido.origen === 'INSTAGRAM' && <Instagram className="w-8 h-8 text-pink-500" />}
+                                                {pedido.origen === 'LOCAL' && <Store className="w-8 h-8 text-blue-500" />}
+                                            </div>
+                                        )}
+                                        {pedido.origen === 'MERCADOLIBRE' && <div className="absolute top-0 right-0 w-3 h-3 bg-yellow-500 rounded-bl-lg" title="Mercado Libre" />}
+                                        {pedido.origen === 'INSTAGRAM' && <div className="absolute top-0 right-0 w-3 h-3 bg-pink-500 rounded-bl-lg" title="Instagram" />}
+                                        {pedido.origen === 'LOCAL' && <div className="absolute top-0 right-0 w-3 h-3 bg-blue-500 rounded-bl-lg" title="Local" />}
                                     </div>
                                     <div>
                                         <div className="font-bold text-white text-lg">{pedido.nombreCliente}</div>
@@ -194,6 +259,14 @@ export default function PedidosAdmin() {
                                             <option key={e} value={e}>{e}</option>
                                         ))}
                                     </select>
+
+                                    <button
+                                        onClick={() => generarCuponRegalo(pedido)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-pink-500/10 hover:bg-pink-500/20 text-pink-500 rounded-lg text-sm font-bold transition-colors ml-2"
+                                        title="Generar regalo"
+                                    >
+                                        <Gift className="w-4 h-4" />
+                                    </button>
 
                                     <button
                                         onClick={() => setPedidoSeleccionado(pedido)}
@@ -295,6 +368,24 @@ export default function PedidosAdmin() {
                     </>
                 )}
             </AnimatePresence>
+
+            {/* Modal QR */}
+            <ModalQR
+                isOpen={qrModal.abierto}
+                onClose={() => setQrModal({ ...qrModal, abierto: false })}
+                codigo={qrModal.codigo}
+                titulo="¡Premio para Cliente!"
+                mensaje={qrModal.mensaje}
+            />
+
+            <ModalNuevoPedido
+                isOpen={modalNuevoPedido}
+                onClose={() => setModalNuevoPedido(false)}
+                onSuccess={() => {
+                    cargarPedidos()
+                    setModalNuevoPedido(false)
+                }}
+            />
         </div>
     )
 }
