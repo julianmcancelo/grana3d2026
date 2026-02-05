@@ -11,6 +11,7 @@ import Header from '@/components/Header'
 import CarritoDrawer from '@/components/CarritoDrawer'
 import ModalUsuario from '@/components/ModalUsuario'
 import { useCarrito } from '@/context/CarritoContext'
+import MantenimientoEpicardo from '@/components/MantenimientoEpicardo'
 
 // Interfaces
 interface Categoria { id: string; nombre: string; slug: string; descripcion: string; imagen?: string }
@@ -127,18 +128,7 @@ function CategoryCard({ categoria, index }: { categoria: Categoria; index: numbe
 
 export default function TiendaClient({ categorias, productosDestacados, todosProductos, config }: TiendaClientProps) {
     if (config.modoProximamente) {
-        return (
-            <div className="bg-[#FAFAFA] dark:bg-[#050505] min-h-screen flex items-center justify-center p-4">
-                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-lg">
-                    <Sparkles className="w-16 h-16 text-teal-500 mx-auto mb-6" />
-                    <h1 className="text-5xl font-black mb-6 dark:text-white">Próximamente</h1>
-                    <p className="text-xl text-gray-500 dark:text-gray-400 mb-8">{config.textoProximamente}</p>
-                    <a href="https://instagram.com/grana3d" className="inline-flex items-center gap-2 px-8 py-4 bg-black dark:bg-white text-white dark:text-black font-bold rounded-full hover:scale-105 transition-transform">
-                        <Instagram className="w-5 h-5" /> Seguinos para novedades
-                    </a>
-                </motion.div>
-            </div>
-        )
+        return <MantenimientoEpicardo texto={config.textoProximamente} />
     }
 
     return (

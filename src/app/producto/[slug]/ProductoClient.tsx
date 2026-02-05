@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ChevronRight, ShoppingCart, Heart, Share2, Truck, Shield, RotateCcw, Check, Minus, Plus, Package, Image as ImageIcon, Star } from 'lucide-react'
+import { ChevronRight, ShoppingCart, Heart, Share2, Truck, Shield, RotateCcw, Check, Minus, Plus, Package, Image as ImageIcon, Star, CreditCard } from 'lucide-react'
 import Header from '@/components/Header'
 import CarritoDrawer from '@/components/CarritoDrawer'
 import ModalUsuario from '@/components/ModalUsuario'
@@ -50,7 +50,7 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
             <Header />
             <CarritoDrawer />
             <ModalUsuario />
-            
+
             <main className="max-w-7xl mx-auto px-4 py-8 lg:py-16">
                 {/* Breadcrumb */}
                 <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8 overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
@@ -68,10 +68,10 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                 </nav>
 
                 <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
-                    
+
                     {/* Gallery Section */}
                     <div className="lg:col-span-7 space-y-6">
-                        <motion.div 
+                        <motion.div
                             layoutId={`product-image-${producto.id}`}
                             className="aspect-[4/3] lg:aspect-square bg-white dark:bg-[#111] rounded-[2rem] overflow-hidden border border-gray-100 dark:border-white/5 relative shadow-2xl shadow-gray-200/50 dark:shadow-none"
                         >
@@ -90,8 +90,8 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                         {producto.imagenes.length > 1 && (
                             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
                                 {producto.imagenes.map((img, i) => (
-                                    <button 
-                                        key={i} 
+                                    <button
+                                        key={i}
                                         onClick={() => setImagenActiva(i)}
                                         className={`snap-start w-24 h-24 rounded-2xl overflow-hidden shrink-0 border-2 transition-all ${i === imagenActiva ? 'border-teal-500 ring-4 ring-teal-500/10' : 'border-transparent opacity-60 hover:opacity-100'}`}
                                     >
@@ -123,7 +123,7 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                     {/* Info Section - Sticky on Desktop */}
                     <div className="lg:col-span-5 relative">
                         <div className="lg:sticky lg:top-24 space-y-8">
-                            
+
                             <div>
                                 {producto.categoria && (
                                     <Link href={`/tienda?categoria=${producto.categoria.slug}`} className="text-teal-600 dark:text-teal-400 font-bold tracking-widest uppercase text-xs mb-4 inline-block hover:underline">
@@ -155,8 +155,8 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                         <span className="block text-sm font-bold text-gray-900 dark:text-white mb-3">Color</span>
                                         <div className="flex flex-wrap gap-2">
                                             {producto.colores.map((c) => (
-                                                <button 
-                                                    key={c} 
+                                                <button
+                                                    key={c}
                                                     onClick={() => setColorSeleccionado(c)}
                                                     className={`px-6 py-3 rounded-xl font-bold text-sm transition-all border-2 ${colorSeleccionado === c ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300' : 'border-transparent bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'}`}
                                                 >
@@ -172,8 +172,8 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                         <span className="block text-sm font-bold text-gray-900 dark:text-white mb-3">Tamaño</span>
                                         <div className="flex flex-wrap gap-2">
                                             {producto.tamanos.map((t) => (
-                                                <button 
-                                                    key={t} 
+                                                <button
+                                                    key={t}
                                                     onClick={() => setTamanoSeleccionado(t)}
                                                     className={`px-6 py-3 rounded-xl font-bold text-sm transition-all border-2 ${tamanoSeleccionado === t ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300' : 'border-transparent bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'}`}
                                                 >
@@ -208,7 +208,7 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                             </div>
 
                             <div className="flex gap-4 pt-4">
-                                <button 
+                                <button
                                     onClick={handleAgregar}
                                     className="flex-1 py-4 bg-gray-900 dark:bg-white text-white dark:text-black font-black text-lg rounded-full shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-transform flex items-center justify-center gap-3"
                                 >
@@ -218,7 +218,7 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                     <Heart className="w-6 h-6" />
                                 </button>
                             </div>
-                            
+
                             {producto.descripcion && (
                                 <div className="pt-8 text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line">
                                     <h3 className="text-gray-900 dark:text-white font-bold mb-4">Descripción</h3>
@@ -238,7 +238,7 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                         <div className="text-xs text-gray-500">Total</div>
                         <div className="text-xl font-black text-gray-900 dark:text-white">${(precio * cantidad).toLocaleString('es-AR')}</div>
                     </div>
-                    <button 
+                    <button
                         onClick={handleAgregar}
                         className="flex-[2] py-3 bg-teal-500 text-white font-bold rounded-full shadow-lg flex items-center justify-center gap-2"
                     >

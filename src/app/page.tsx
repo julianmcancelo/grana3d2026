@@ -1,11 +1,12 @@
 import { prisma } from '@/lib/prisma'
 import {
-   Truck, CreditCard, Shield, Headphones, Sparkles, MessageCircle, User, ChevronRight
+   Truck, CreditCard, Shield, Headphones, MessageCircle
 } from 'lucide-react'
 import Header from '@/components/Header'
 import CarritoDrawer from '@/components/CarritoDrawer'
 import ModalUsuario from '@/components/ModalUsuario'
 import Link from 'next/link'
+import MantenimientoEpicardo from '@/components/MantenimientoEpicardo'
 
 // Components
 import SeccionBannersCategoria from '@/components/secciones/SeccionBannersCategoria'
@@ -127,29 +128,7 @@ export default async function HomePage() {
    const data = await getData()
 
    if (data.config.modoProximamente) {
-      return (
-         <div className="bg-gray-50 dark:bg-black min-h-screen text-gray-900 dark:text-white font-sans selection:bg-teal-500 selection:text-white">
-            <Header />
-            <div className="min-h-[80vh] flex items-center justify-center px-4">
-               <div className="text-center max-w-2xl animate-in fade-in zoom-in duration-500">
-                  <div className="w-24 h-24 bg-teal-500/10 rounded-full flex items-center justify-center mx-auto mb-8">
-                     <Sparkles className="w-12 h-12 text-teal-500" />
-                  </div>
-                  <h1 className="text-4xl md:text-6xl font-black mb-6 text-gray-900 dark:text-white">
-                     ¡Muy <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-emerald-600">Pronto</span>!
-                  </h1>
-                  <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 leading-relaxed">
-                     {data.config.textoProximamente}
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                     <a href="https://wa.me/5491112345678" target="_blank" className="px-8 py-4 bg-teal-500 text-white dark:text-black font-bold rounded-full hover:bg-teal-600 transition-colors flex items-center justify-center gap-2">
-                        <MessageCircle className="w-5 h-5" /> Consultanos
-                     </a>
-                  </div>
-               </div>
-            </div>
-         </div>
-      )
+      return <MantenimientoEpicardo texto={data.config.textoProximamente} />
    }
 
    return (
