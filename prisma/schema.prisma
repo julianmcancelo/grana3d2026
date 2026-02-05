@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        String   @id @default(cuid())
+  nombre    String
+  email     String   @unique
+  password  String
+  rol       Rol      @default(CLIENTE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pedidos   Pedido[]
+}
+
+model Categoria {
+  id          String     @id @default(cuid())
+  nombre      String
+  slug        String     @unique
+  descripcion String?
+  imagen      String?
+  icono       String?
+  color       String?
+  orden       Int        @default(0)
+  activo      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime
+  productos   Producto[]
+}
+
+model Producto {
+  id           String    @id @default(cuid())
+  nombre       String
+  slug         String    @unique
+  descripcion  String
+  precio       Float
+  precioOferta Float?
+  imagen       String?
+  imagenes     String[]
+  categoriaId  String
+  destacado    Boolean   @default(false)
+  activo       Boolean   @default(true)
+  stock        Int       @default(0)
+  variantes    Json?
+  orden        Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime
+  categoria    Categoria @relation(fields: [categoriaId], references: [id])
+}
+
+model Pedido {
+  id                String       @id @default(cuid())
+  numero            Int          @default(autoincrement())
+  nombreCliente     String
+  apellidoCliente   String?
+  emailCliente      String?
+  telefonoCliente   String?
+  dniCliente        String?
+  direccionEnvio    String?
+  ciudadEnvio       String?
+  provinciaEnvio    String?
+  codigoPostalEnvio String?
+  total             Float        @default(0)
+  estado            EstadoPedido @default(PENDIENTE)
+  metodoPago        MetodoPago   @default(EFECTIVO)
+  metodoEnvio       MetodoEnvio?
+  items             Json
+  usuarioId         String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  usuario           Usuario?     @relation(fields: [usuarioId], references: [id])
+}
+
+model Banner {
+  id          String   @id @default(cuid())
+  titulo      String
+  subtitulo   String?
+  descripcion String?
+  imagen      String
+  imagenMovil String?
+  textoBoton  String?
+  linkBoton   String?
+  textoBoton2 String?
+  linkBoton2  String?
+  colorFondo  String?
+  colorTexto  String?
+  overlay     Boolean  @default(true)
+  orden       Int      @default(0)
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+}
+
+model Configuracion {
+  clave String @id @unique
+  valor String
+}
+
+model Cupon {
+  id                String             @id
+  codigo            String             @unique
+  descripcion       String?
+  tipo              TipoCupon          @default(PORCENTAJE)
+  valor             Float
+  minimoCompra      Float?
+  maximoDescuento   Float?
+  usosMaximos       Int?
+  usosPorUsuario    Int                @default(1)
+  usosActuales      Int                @default(0)
+  fechaInicio       DateTime           @default(now())
+  fechaFin          DateTime?
+  activo            Boolean            @default(true)
+  aplicaA           AplicaCupon        @default(TODO)
+  categoriaIds      String[]
+  productoIds       String[]
+  programaId        String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime
+  ProgramaIncentivo ProgramaIncentivo? @relation(fields: [programaId], references: [id])
+  UsoCupon          UsoCupon[]
+}
+
+model ProgramaIncentivo {
+  id          String       @id
+  nombre      String
+  descripcion String?
+  tipo        TipoPrograma @default(REFERIDOS)
+  recompensa  Float
+  activo      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime
+  Cupon       Cupon[]
+  QRCode      QRCode[]
+}
+
+model QRCode {
+  id                String            @id
+  codigo            String            @unique
+  nombre            String?
+  url               String
+  cuponCodigo       String?
+  escaneos          Int               @default(0)
+  programaId        String
+  activo            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime
+  ProgramaIncentivo ProgramaIncentivo @relation(fields: [programaId], references: [id])
+}
+
+model UsoCupon {
+  id        String   @id
+  cuponId   String
+  email     String
+  pedidoId  String?
+  monto     Float?
+  createdAt DateTime @default(now())
+  Cupon     Cupon    @relation(fields: [cuponId], references: [id])
+}
+
+model Novedad {
+  id               String   @id @default(cuid())
+  titulo           String
+  contenido        String
+  imagen           String?
+  fechaPublicacion DateTime @default(now())
+  activa           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum AplicaCupon {
+  TODO
+  CATEGORIAS
+  PRODUCTOS
+}
+
+enum EstadoPedido {
+  PENDIENTE
+  CONFIRMADO
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+}
+
+enum MetodoEnvio {
+  RETIRO_LOCAL
+  CORREO_ARGENTINO
+  ANDREANI
+  ENVIO_PROPIO
+}
+
+enum MetodoPago {
+  MERCADOPAGO
+  TRANSFERENCIA
+  EFECTIVO
+  TARJETA
+}
+
+enum Rol {
+  ADMIN
+  CLIENTE
+}
+
+enum TipoCupon {
+  PORCENTAJE
+  FIJO
+  ENVIO_GRATIS
+}
+
+enum TipoPrograma {
+  REFERIDOS
+  PRIMERA_COMPRA
+  FIDELIDAD
+  EVENTO
+}
