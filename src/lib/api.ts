@@ -1,7 +1,17 @@
 import axios from 'axios'
 
+// En producción usamos URLs relativas, en desarrollo usamos el servidor local
+const getBaseURL = () => {
+    if (typeof window !== 'undefined') {
+        // En el cliente, siempre usar URLs relativas
+        return '/api'
+    }
+    // En el servidor
+    return process.env.NEXT_PUBLIC_API_URL || '/api'
+}
+
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
+    baseURL: getBaseURL(),
     headers: { 'Content-Type': 'application/json' }
 })
 
