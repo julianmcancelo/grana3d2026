@@ -62,9 +62,9 @@ export default function Header() {
                         {estaAutenticado ? (
                             <span>Hola, <span className="text-white font-medium">{usuario?.nombre}</span></span>
                         ) : (
-                            <button onClick={() => abrirModal('login')} className="hover:text-white transition-colors">
+                            <Link href="/login" className="hover:text-white transition-colors">
                                 Iniciar Sesión
-                            </button>
+                            </Link>
                         )}
                     </div>
                 </div>
@@ -117,13 +117,13 @@ export default function Header() {
                                         <ChevronDown className="w-4 h-4" />
                                     </button>
                                 ) : (
-                                    <button
-                                        onClick={() => abrirModal('login')}
+                                    <Link
+                                        href="/login"
                                         className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-400 text-black font-bold rounded-lg transition-colors"
                                     >
                                         <User className="w-4 h-4" />
                                         Conectarse
-                                    </button>
+                                    </Link>
                                 )}
 
                                 <AnimatePresence>
@@ -242,9 +242,9 @@ export default function Header() {
                                             <LogOut className="w-4 h-4" /> Cerrar sesión
                                         </button>
                                     ) : (
-                                        <button onClick={() => { abrirModal('login'); setMenuMovil(false) }} className="block w-full px-4 py-3 rounded-xl text-black font-bold text-center bg-teal-500 hover:bg-teal-400">
+                                        <Link href="/login" onClick={() => setMenuMovil(false)} className="block w-full px-4 py-3 rounded-xl text-black font-bold text-center bg-teal-500 hover:bg-teal-400">
                                             Iniciar Sesión
-                                        </button>
+                                        </Link>
                                     )}
                                 </div>
                             </nav>
