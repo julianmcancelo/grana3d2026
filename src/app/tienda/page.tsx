@@ -37,8 +37,8 @@ export default async function TiendaPage() {
     const data = await getData()
 
     return (
-        <TiendaClient 
-            categorias={data.categorias}
+        <TiendaClient
+            categorias={data.categorias.map(c => ({ ...c, descripcion: c.descripcion || '', imagen: c.imagen || undefined }))}
             productosDestacados={data.productosDestacados}
             todosProductos={data.todosProductos}
             config={data.config}
