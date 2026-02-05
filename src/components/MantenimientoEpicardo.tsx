@@ -1,217 +1,316 @@
 "use client"
 import { motion, AnimatePresence } from 'framer-motion'
-import { Instagram, MessageCircle, Hammer, Ruler, Component, Thermometer, Clock, ArrowUpFromLine } from 'lucide-react'
+import { Instagram, MessageCircle, Hammer, Ruler, Component, Thermometer, ArrowUpFromLine, Fan, RefreshCw, Zap } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
+type PrinterState = 'IDLE' | 'HEATING' | 'HOMING' | 'PRINTING' | 'COOLING' | 'FINISHED' | 'EJECT'
+
 export default function MantenimientoEpicardo({ texto }: { texto: string }) {
+    const [state, setState] = useState<PrinterState>('HEATING')
     const [progress, setProgress] = useState(0)
-    const [statusText, setStatusText] = useState("Inicializando...")
     const [nozzleTemp, setNozzleTemp] = useState(24)
-    const [bedTemp, setBedTemp] = useState(20)
+    const [bedTemp, setBedTemp] = useState(24)
+    const [fanSpeed, setFanSpeed] = useState(0)
+    
+    // Configuración Física Visual
+    const TARGET_NOZZLE = 210
+    const TARGET_BED = 60
+    const TOTAL_LAYERS = 200
+    // Altura máxima visual en px que tendrá la pieza al 100%
+    const MAX_HEIGHT_PX = 120 
 
-    // Simulación de datos de impresora
     useEffect(() => {
-        const interval = setInterval(() => {
-            setProgress(prev => {
-                if (prev >= 98) return 98
-                // Acelera al principio, frena al final
-                const increment = Math.random() * (prev < 50 ? 2 : 0.5)
-                return Math.min(98, prev + increment)
-            })
+        let interval: NodeJS.Timeout
+        
+        const runCycle = () => {
+            interval = setInterval(() => {
+                setState(currentState => {
+                    switch (currentState) {
+                        case 'HEATING':
+                            setNozzleTemp(p => { const n = p + (TARGET_NOZZLE - p) * 0.08; return n > TARGET_NOZZLE - 2 ? TARGET_NOZZLE : n })
+                            setBedTemp(p => { const n = p + (TARGET_BED - p) * 0.05; return n > TARGET_BED - 1 ? TARGET_BED : n })
+                            if (nozzleTemp > TARGET_NOZZLE - 5 && bedTemp > TARGET_BED - 2) return 'HOMING'
+                            return 'HEATING'
 
-            // Simular temperaturas
-            setNozzleTemp(prev => prev < 210 ? prev + Math.random() * 5 : 208 + Math.random() * 4)
-            setBedTemp(prev => prev < 60 ? prev + Math.random() * 2 : 59 + Math.random() * 2)
+                        case 'HOMING':
+                            if (Math.random() > 0.92) return 'PRINTING'
+                            return 'HOMING'
 
-        }, 100)
+                        case 'PRINTING':
+                            setFanSpeed(100)
+                            setNozzleTemp(TARGET_NOZZLE + (Math.random() - 0.5) * 3)
+                            
+                            setProgress(prev => {
+                                const next = prev + 0.15 
+                                if (next >= 100) return 100
+                                return next
+                            })
+                            
+                            if (progress >= 100) return 'FINISHED'
+                            return 'PRINTING'
 
+                        case 'FINISHED':
+                            setFanSpeed(0)
+                            return 'COOLING'
+
+                        case 'COOLING':
+                            setNozzleTemp(prev => Math.max(24, prev - 3))
+                            if (nozzleTemp < 100) return 'EJECT'
+                            return 'COOLING'
+
+                        case 'EJECT':
+                            if (Math.random() > 0.96) {
+                                setProgress(0)
+                                return 'HEATING'
+                            }
+                            return 'EJECT'
+
+                        default:
+                            return 'HEATING'
+                    }
+                })
+            }, 50)
+        }
+
+        runCycle()
         return () => clearInterval(interval)
-    }, [])
+    }, [nozzleTemp, bedTemp, progress])
 
-    // Cambiar texto de estado según progreso
-    useEffect(() => {
-        if (progress < 20) setStatusText("Calentando boquilla...")
-        else if (progress < 40) setStatusText("Nivelando cama (Auto-leveling)...")
-        else if (progress < 60) setStatusText("Imprimiendo perímetro externo...")
-        else if (progress < 80) setStatusText("Rellenando infill (20%)...")
-        else setStatusText("Finalizando capas superiores...")
-    }, [progress])
+    const currentHeightPx = (progress / 100) * MAX_HEIGHT_PX
+
+    const getStatusText = () => {
+        switch (state) {
+            case 'HEATING': return `Calentando... E:${Math.floor(nozzleTemp)}° B:${Math.floor(bedTemp)}°`
+            case 'HOMING': return "Homing X Y Z..."
+            case 'PRINTING': return `Imprimiendo capa ${Math.floor((progress/100)*TOTAL_LAYERS)}/${TOTAL_LAYERS}`
+            case 'FINISHED': return "Finalizado. Enfriando..."
+            case 'COOLING': return "Enfriando hotend..."
+            case 'EJECT': return "Retirando pieza..."
+            default: return "Standby"
+        }
+    }
 
     return (
-        <div className="relative min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center text-white font-sans selection:bg-teal-500 selection:text-white overflow-hidden">
+        <div className="relative min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center text-white font-sans selection:bg-teal-500 selection:text-white overflow-x-hidden py-6 md:py-10">
             
-            {/* Background: Technical Grid */}
-            <div className="absolute inset-0 z-0 opacity-[0.05]" 
+            {/* Background Grid */}
+            <div className="absolute inset-0 z-0 opacity-[0.03]" 
                  style={{ 
                      backgroundImage: 'linear-gradient(#14b8a6 1px, transparent 1px), linear-gradient(90deg, #14b8a6 1px, transparent 1px)', 
                      backgroundSize: '40px 40px' 
                  }} 
             />
             
-            <div className="relative z-10 w-full max-w-4xl mx-auto px-4 text-center flex flex-col items-center">
+            <div className="relative z-10 w-full max-w-5xl mx-auto px-4 flex flex-col items-center">
                 
-                {/* Visual: Realistic FDM Printing Animation */}
-                <div className="relative w-48 h-48 mb-12 flex items-center justify-center">
+                {/* 3D PRINTER SIMULATION STAGE */}
+                <div className="relative w-80 h-96 mb-8 flex items-end justify-center pb-12">
                     
-                    {/* Impresión (Objeto crecienco) */}
-                    <div className="relative w-32 h-32 flex flex-col-reverse items-center justify-start overflow-hidden border-b-2 border-gray-700">
-                        {/* Capas simuladas */}
-                        <motion.div 
-                            className="w-24 bg-teal-500/20 border border-teal-500/50"
-                            initial={{ height: 0 }}
-                            animate={{ height: "70%" }}
-                            transition={{ duration: 4, ease: "linear", repeat: Infinity, repeatDelay: 1 }}
-                        />
-                        
-                        {/* Patrón de Infill (Relleno) */}
-                        <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,#000_0px,#000_2px,transparent_2px,transparent_8px)]" />
+                    {/* Marco Estructural (Pillars) */}
+                    <div className="absolute top-0 left-8 w-3 h-full bg-gray-800 rounded-t-lg border-l border-gray-700" />
+                    <div className="absolute top-0 right-8 w-3 h-full bg-gray-800 rounded-t-lg border-r border-gray-700" />
+                    <div className="absolute top-4 left-8 right-8 h-6 bg-gray-800 rounded-lg shadow-md z-0 flex items-center justify-center border-t border-gray-700">
+                        <div className="text-[9px] font-black text-gray-600 tracking-[0.2em]">GRANA3D MK4</div>
                     </div>
 
-                    {/* Cabezal / Nozzle Animado */}
-                    <motion.div 
-                        className="absolute w-8 h-12 top-[30%] left-1/2 -ml-4 z-20"
-                        animate={{ 
-                            x: [-40, 40, -40, 40, 0], 
-                            y: [0, 0, -5, -5, -30] // Sube a medida que imprime
-                        }}
-                        transition={{ 
-                            duration: 4, 
-                            ease: "easeInOut", 
-                            repeat: Infinity,
-                            repeatDelay: 1
-                        }}
-                    >
-                        {/* Cuerpo del Hotend */}
-                        <div className="w-full h-full bg-gray-800 rounded-lg border border-gray-600 shadow-xl flex flex-col items-center relative">
-                            {/* Fan */}
-                            <div className="w-6 h-6 mt-1 rounded-full border border-gray-600 animate-spin-slow opacity-50 flex items-center justify-center">
-                                <div className="w-4 h-0.5 bg-gray-500" />
-                                <div className="w-4 h-0.5 bg-gray-500 rotate-90 absolute" />
+                    {/* Cama Caliente (Bed) */}
+                    {/* Ajustado: Perspective y Rotate para dar profundidad real */}
+                    <div className="absolute bottom-8 w-64 h-56 perspective-1000 z-10">
+                         <div className="w-full h-full bg-gray-900 border-4 border-gray-800 rounded-xl transform rotate-x-[60deg] shadow-2xl relative overflow-hidden origin-bottom">
+                            {/* Superficie */}
+                            <div className="absolute inset-0 bg-[#151515]" />
+                            <div className="absolute inset-0 opacity-20 bg-[linear-gradient(rgba(255,255,255,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                            {/* Logo Fantasma en Cama */}
+                            <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                                <div className="w-20 h-20 border-2 border-gray-500 rounded-full" />
                             </div>
-                            {/* Punta Nozzle */}
-                            <div className="absolute -bottom-2 w-2 h-2 bg-yellow-600 clip-triangle" style={{clipPath: 'polygon(0 0, 100% 0, 50% 100%)'}} />
-                            
-                            {/* Filamento saliendo (partículas) */}
-                            <motion.div 
-                                className="absolute -bottom-4 w-1 h-1 bg-teal-400 rounded-full"
-                                animate={{ opacity: [0, 1, 0], y: [0, 10] }}
-                                transition={{ duration: 0.2, repeat: Infinity }}
-                            />
+                         </div>
+                    </div>
+
+                    {/* GRUPO Z: Pieza + Cabezal */}
+                    {/* Contenedor relativo que alinea visualmente con el centro de la cama inclinada */}
+                    <div className="absolute bottom-[4.5rem] w-full flex justify-center z-20">
+                        
+                        {/* PIEZA IMPRIMIÉNDOSE */}
+                        <div className="relative flex items-end justify-center w-32">
+                            <AnimatePresence mode="wait">
+                                {state !== 'EJECT' && (
+                                    <motion.div 
+                                        key="piece"
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ 
+                                            height: Math.max(2, currentHeightPx),
+                                            opacity: 1 
+                                        }}
+                                        exit={{ y: -50, opacity: 0, scale: 1.1, transition: { duration: 0.8, ease: "anticipate" } }}
+                                        className="w-24 bg-teal-500 shadow-[0_0_20px_rgba(20,184,166,0.3)] relative"
+                                        style={{
+                                            // Trapezio invertido sutil para compensar perspectiva
+                                            clipPath: 'polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)', 
+                                            background: 'linear-gradient(to bottom, #2dd4bf, #0f766e)',
+                                        }}
+                                    >
+                                        {/* Brillo Capa Superior */}
+                                        <div className="absolute top-0 w-full h-[2px] bg-white/80 shadow-[0_0_10px_white]" />
+                                        
+                                        {/* Textura de capas */}
+                                        <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,rgba(0,0,0,0.1)_0px,rgba(0,0,0,0.1)_1px,transparent_1px,transparent_3px)]" />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
-                    </motion.div>
+
+                        {/* EJE X (Gantry) - Se mueve verticalmente */}
+                        <motion.div 
+                            className="absolute w-full px-6 pointer-events-none"
+                            style={{ 
+                                bottom: 0, // Base alineada con el suelo de la pieza
+                                transformOrigin: 'bottom'
+                            }}
+                            animate={{ 
+                                y: -currentHeightPx // Sube negativo (hacia arriba)
+                            }}
+                            transition={{ type: "tween", ease: "linear", duration: 0.1 }}
+                        >
+                            {/* Riel X Horizontal */}
+                            <div className="w-full h-8 bg-gray-800 border-y border-gray-700 shadow-xl relative flex items-center rounded-sm z-30">
+                                {/* Correa */}
+                                <div className="w-full h-2 bg-black opacity-50 mx-2 bg-[repeating-linear-gradient(90deg,transparent_0,transparent_2px,black_2px,black_4px)]" />
+                                
+                                {/* CABEZAL (Hotend) - Se mueve horizontalmente */}
+                                <motion.div 
+                                    className="absolute h-20 w-14 bg-gray-800 rounded-lg border border-gray-600 shadow-2xl flex flex-col items-center z-40"
+                                    style={{ 
+                                        top: '-6px', 
+                                        left: '50%', 
+                                        marginLeft: '-28px' 
+                                    }}
+                                    animate={
+                                        state === 'HOMING' ? { x: -60 } :
+                                        state === 'PRINTING' ? { 
+                                            x: [0, 35, -35, 15, -15, 0], 
+                                        } : { x: 0 }
+                                    }
+                                    transition={{
+                                        x: {
+                                            duration: 2.5,
+                                            repeat: state === 'PRINTING' ? Infinity : 0,
+                                            repeatType: "mirror",
+                                            ease: "linear"
+                                        }
+                                    }}
+                                >
+                                    {/* Ventilador */}
+                                    <div className="mt-2 w-10 h-10 rounded bg-gray-900 border border-gray-700 flex items-center justify-center relative overflow-hidden">
+                                        <Fan className={`w-8 h-8 text-gray-600 ${fanSpeed > 0 ? 'animate-spin' : ''}`} />
+                                    </div>
+
+                                    {/* Nozzle (Punta) - Debe tocar justo la pieza */}
+                                    <div className="absolute -bottom-1.5 w-3 h-4 bg-[#eab308] clip-triangle shadow-sm z-10" style={{clipPath: 'polygon(20% 0, 80% 0, 50% 100%)'}} />
+                                    
+                                    {/* Partícula saliendo (Solo imprimiendo) */}
+                                    {state === 'PRINTING' && (
+                                        <motion.div 
+                                            className="absolute -bottom-3 w-1 h-1 bg-white rounded-full"
+                                            initial={{ opacity: 1, y: 0 }}
+                                            animate={{ opacity: 0, y: 4 }}
+                                            transition={{ duration: 0.1, repeat: Infinity }}
+                                        />
+                                    )}
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    </div>
+                </div>
+
+                {/* DASHBOARD */}
+                <div className="w-full max-w-2xl bg-[#111] border border-gray-800 rounded-2xl p-5 md:p-8 shadow-2xl backdrop-blur-sm relative overflow-hidden mb-8 md:mb-12 mx-4">
+                    {/* Header */}
+                    <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${state === 'IDLE' ? 'bg-gray-600' : 'bg-teal-500 animate-pulse'}`} />
+                            <div>
+                                <h2 className="text-gray-400 text-[10px] font-bold tracking-widest uppercase">ESTADO</h2>
+                                <div className="text-lg md:text-xl font-mono font-bold text-white flex items-center gap-2">
+                                    {state}
+                                    {state === 'PRINTING' && <RefreshCw className="w-3 h-3 md:w-4 md:h-4 text-teal-500 animate-spin" />}
+                                    {state === 'HEATING' && <Zap className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 animate-pulse" />}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-gray-500 text-[10px] font-mono tracking-widest">TIEMPO</div>
+                            <div className="text-lg md:text-xl font-mono text-white">00:{Math.floor(progress * 0.45).toString().padStart(2, '0')}</div>
+                        </div>
+                    </div>
+
+                    {/* Barra de Progreso */}
+                    <div className="mb-8">
+                        <div className="flex justify-between text-[10px] md:text-xs text-gray-400 font-mono mb-2">
+                            <span className="truncate mr-2">{getStatusText()}</span>
+                            <span>{Math.floor(progress)}%</span>
+                        </div>
+                        <div className="relative h-3 md:h-4 bg-gray-900 rounded-full overflow-hidden border border-gray-800 shadow-inner">
+                            <motion.div 
+                                className="absolute h-full bg-gradient-to-r from-teal-600 to-teal-400"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ type: "tween", ease: "linear" }}
+                            />
+                            <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,black_10px,black_20px)]" />
+                        </div>
+                    </div>
+
+                    {/* Datos Técnicos */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                        <InfoBox icon={Thermometer} label="Nozzle" value={`${Math.floor(nozzleTemp)}°`} sub={`/ ${TARGET_NOZZLE}°`} color={nozzleTemp > 50 ? "text-red-400" : "text-white"} />
+                        <InfoBox icon={Thermometer} label="Bed" value={`${Math.floor(bedTemp)}°`} sub={`/ ${TARGET_BED}°`} color={bedTemp > 40 ? "text-orange-400" : "text-white"} />
+                        <InfoBox icon={Fan} label="Fan" value={`${fanSpeed}%`} sub={fanSpeed > 0 ? 'ON' : 'OFF'} />
+                        <InfoBox icon={ArrowUpFromLine} label="Z-Axis" value={`${(progress * 0.15).toFixed(2)}`} sub="mm" />
+                    </div>
                 </div>
 
                 {/* Main Text */}
-                <motion.h1 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-4xl md:text-6xl font-black tracking-tight mb-4"
-                >
-                    Estamos <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">Imprimiendo</span><br/>
-                    el Futuro.
-                </motion.h1>
+                <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-4 text-center px-4">
+                    Estamos <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">Upgradeando</span><br/>
+                    el Taller.
+                </h1>
+                <p className="text-sm md:text-base text-gray-400 mb-28 md:mb-12 max-w-lg leading-relaxed text-center px-6">
+                    {texto || "Calibrando nuevas máquinas y cargando stock fresco. Volvemos con todo en unos instantes."}
+                </p>
 
-                <motion.p 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="text-lg text-gray-400 mb-10 max-w-lg mx-auto leading-relaxed"
-                >
-                    {texto || "Optimizando parámetros para una adhesión perfecta. Muy pronto podrás acceder a nuestra nueva tienda online."}
-                </motion.p>
-
-                {/* Live Printer Status (Interactivo) */}
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="w-full max-w-md bg-gray-900/50 border border-gray-800 rounded-xl p-6 mb-12 backdrop-blur-sm"
-                >
-                    {/* Header Info */}
-                    <div className="flex justify-between items-center mb-4 text-xs font-mono text-teal-500">
-                        <span className="flex items-center gap-2"><div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse" /> ONLINE</span>
-                        <span>GRANA-MK4</span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="mb-2 flex justify-between text-xs font-bold text-gray-300">
-                        <span>{statusText}</span>
-                        <span>{Math.floor(progress)}%</span>
-                    </div>
-                    <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden mb-6 relative">
-                         {/* Striped progress */}
-                        <motion.div 
-                            className="h-full bg-gradient-to-r from-teal-600 to-teal-400 relative"
-                            style={{ width: `${progress}%` }}
-                        >
-                            <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:10px_10px] animate-[progress-stripes_1s_linear_infinite]" />
-                        </motion.div>
-                    </div>
-
-                    {/* Telemetry Grid */}
-                    <div className="grid grid-cols-3 gap-4 border-t border-gray-800 pt-4">
-                        <div className="text-center">
-                            <div className="text-[10px] text-gray-500 uppercase mb-1 flex items-center justify-center gap-1"><Thermometer className="w-3 h-3" /> Nozzle</div>
-                            <div className="font-mono text-lg font-bold text-white">{Math.floor(nozzleTemp)}°C</div>
-                        </div>
-                        <div className="text-center border-l border-gray-800">
-                            <div className="text-[10px] text-gray-500 uppercase mb-1 flex items-center justify-center gap-1"><ArrowUpFromLine className="w-3 h-3" /> Z-Axis</div>
-                            <div className="font-mono text-lg font-bold text-white">{(progress * 0.15).toFixed(2)}mm</div>
-                        </div>
-                        <div className="text-center border-l border-gray-800">
-                            <div className="text-[10px] text-gray-500 uppercase mb-1 flex items-center justify-center gap-1"><Clock className="w-3 h-3" /> Time</div>
-                            <div className="font-mono text-lg font-bold text-white">-00:05</div>
-                        </div>
-                    </div>
-                </motion.div>
-
-                {/* Action Buttons: Separated from badges */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-lg mb-24 relative z-20"
-                >
-                    <a 
-                        href="https://wa.me/5491112345678" 
-                        target="_blank"
-                        className="flex-1 py-4 bg-teal-500 hover:bg-teal-400 text-black font-bold rounded-xl transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-teal-500/20 flex items-center justify-center gap-2 group"
-                    >
-                        <MessageCircle className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                        <span>Pedido Manual</span>
+                {/* Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-lg mb-20 md:mb-24 px-4 relative z-50">
+                    <a href="https://wa.me/5491126354636" target="_blank" className="flex-1 py-3.5 md:py-4 bg-teal-500 hover:bg-teal-400 text-black font-bold rounded-xl transition-transform hover:-translate-y-1 flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20 active:scale-95">
+                        <MessageCircle className="w-5 h-5" /> Pedido Manual
                     </a>
-                    <a 
-                        href="https://instagram.com/grana.3d" 
-                        target="_blank"
-                        className="flex-1 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl transition-all hover:-translate-y-1 flex items-center justify-center gap-2"
-                    >
-                        <Instagram className="w-5 h-5" />
-                        <span>@grana.3d</span>
+                    <a href="https://instagram.com/grana.3d" target="_blank" className="flex-1 py-3.5 md:py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl transition-transform hover:-translate-y-1 flex items-center justify-center gap-2 active:scale-95">
+                        <Instagram className="w-5 h-5" /> @grana.3d
                     </a>
-                </motion.div>
+                </div>
 
-                {/* Footer Badges: Fixed Bottom & Clean */}
-                <div className="fixed bottom-0 left-0 w-full bg-black/80 backdrop-blur-md border-t border-white/5 py-4 z-10">
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 1 }}
-                        className="flex justify-center gap-8 md:gap-16 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest"
-                    >
-                        <div className="flex items-center gap-2 hover:text-teal-500 transition-colors cursor-default">
-                            <Ruler className="w-4 h-4" /> Prototipado
-                        </div>
-                        <div className="flex items-center gap-2 hover:text-teal-500 transition-colors cursor-default">
-                            <Component className="w-4 h-4" /> Producción
-                        </div>
-                        <div className="flex items-center gap-2 hover:text-teal-500 transition-colors cursor-default">
-                            <Hammer className="w-4 h-4" /> Post-Procesado
-                        </div>
-                    </motion.div>
+                {/* Footer Badges */}
+                <div className="fixed bottom-0 left-0 w-full bg-[#050505]/95 backdrop-blur border-t border-white/5 py-4 z-40">
+                    <div className="flex justify-center gap-8 md:gap-12 text-[9px] md:text-xs font-bold text-gray-500 uppercase tracking-widest overflow-x-auto px-4 no-scrollbar">
+                        <div className="flex items-center gap-2 whitespace-nowrap"><Ruler className="w-3 h-3" /> Prototipado</div>
+                        <div className="flex items-center gap-2 whitespace-nowrap"><Component className="w-3 h-3" /> Producción</div>
+                        <div className="flex items-center gap-2 whitespace-nowrap"><Hammer className="w-3 h-3" /> Post-Procesado</div>
+                    </div>
                 </div>
 
             </div>
+        </div>
+    )
+}
+
+function InfoBox({ icon: Icon, label, value, sub, color = "text-white" }: any) {
+    return (
+        <div className="bg-gray-900/50 rounded-lg p-3 text-center border border-gray-800 flex flex-col items-center justify-center">
+            <div className="text-[9px] text-gray-500 uppercase mb-1 flex items-center justify-center gap-1 w-full truncate">
+                <Icon className="w-3 h-3" /> {label}
+            </div>
+            <div className={`font-mono text-base md:text-lg font-bold ${color}`}>{value}</div>
+            <div className="text-[9px] text-gray-600">{sub}</div>
         </div>
     )
 }
