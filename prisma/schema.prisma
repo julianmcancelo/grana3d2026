@@ -218,3 +218,48 @@ enum TipoPrograma {
   FIDELIDAD
   EVENTO
 }
+
+// ========== SECCIONES CONFIGURABLES HOMEPAGE ==========
+
+model SeccionHomepage {
+  id        String       @id @default(cuid())
+  tipo      TipoSeccion
+  titulo    String?
+  subtitulo String?
+  orden     Int          @default(0)
+  activa    Boolean      @default(true)
+  config    Json?        // Configuración específica por tipo
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+enum TipoSeccion {
+  HERO_CAROUSEL
+  BANNERS_CATEGORIA
+  PRODUCTOS_DESTACADOS
+  PRODUCTOS_OFERTA
+  BANNER_PROMO
+  CATEGORIAS_RAPIDAS
+  RESENAS
+  NEWSLETTER
+}
+
+model Resena {
+  id        String   @id @default(cuid())
+  nombre    String
+  texto     String
+  rating    Int      @default(5)
+  imagen    String?
+  activa    Boolean  @default(true)
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Suscriptor {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  nombre    String?
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
