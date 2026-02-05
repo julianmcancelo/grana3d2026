@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Mail, Lock, User, Eye, EyeOff, Loader2, ArrowRight, Sparkles } from 'lucide-react'
+import { X, Mail, Lock, User, Eye, EyeOff, Loader2, ArrowRight, Box } from 'lucide-react'
 import { useUsuario } from '@/context/UsuarioContext'
 
 export default function ModalUsuario() {
@@ -79,98 +79,107 @@ export default function ModalUsuario() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={cerrarModal}
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-black/80 backdrop-blur-md z-50"
                     />
 
                     {/* Modal */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
                     >
-                        <div className="relative w-full max-w-md bg-gradient-to-br from-gray-900 to-black border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+                        <div className="relative w-full max-w-md bg-[#111] border border-gray-800 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto">
 
-                            {/* Fondo decorativo */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+                            {/* Decorative Top Bar */}
+                            <div className="h-1.5 w-full bg-[#00AE42]" />
 
                             {/* Contenido */}
-                            <div className="relative z-10 p-8">
+                            <div className="p-8">
                                 {/* Header */}
                                 <div className="flex items-center justify-between mb-8">
-                                    <div>
-                                        <div className="flex items-center gap-2 text-teal-400 text-sm font-bold mb-1">
-                                            <Sparkles className="w-4 h-4" />
-                                            {tipoModal === 'login' ? 'BIENVENIDO' : 'ÚNETE'}
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-[#00AE42] rounded-lg flex items-center justify-center text-black">
+                                            <Box className="w-6 h-6" />
                                         </div>
-                                        <h2 className="text-3xl font-black text-white">
-                                            {tipoModal === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
-                                        </h2>
+                                        <div>
+                                            <h2 className="text-2xl font-black text-white leading-none">
+                                                {tipoModal === 'login' ? 'Bienvenido' : 'Crear Cuenta'}
+                                            </h2>
+                                            <p className="text-gray-500 text-xs mt-1 font-medium tracking-wide">GRANA3D ID</p>
+                                        </div>
                                     </div>
                                     <button
                                         onClick={cerrarModal}
-                                        className="p-2 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors"
+                                        className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors"
                                     >
-                                        <X className="w-6 h-6" />
+                                        <X className="w-5 h-5" />
                                     </button>
                                 </div>
 
                                 {/* Formulario */}
-                                <form onSubmit={handleSubmit} className="space-y-5">
+                                <form onSubmit={handleSubmit} className="space-y-4">
                                     {tipoModal === 'registro' && (
-                                        <div className="relative">
-                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                            <input
-                                                type="text"
-                                                placeholder="Tu nombre"
-                                                value={nombre}
-                                                onChange={(e) => setNombre(e.target.value)}
-                                                className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:bg-white/10 transition-all"
-                                            />
+                                        <div className="group">
+                                            <div className="relative">
+                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-[#00AE42] transition-colors" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Nombre Completo"
+                                                    value={nombre}
+                                                    onChange={(e) => setNombre(e.target.value)}
+                                                    className="w-full pl-12 pr-4 py-3.5 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#00AE42] focus:bg-[#222] transition-all font-medium text-sm"
+                                                />
+                                            </div>
                                         </div>
                                     )}
 
-                                    <div className="relative">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                        <input
-                                            type="email"
-                                            placeholder="Email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:bg-white/10 transition-all"
-                                        />
+                                    <div className="group">
+                                        <div className="relative">
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-[#00AE42] transition-colors" />
+                                            <input
+                                                type="email"
+                                                placeholder="Correo electrónico"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                className="w-full pl-12 pr-4 py-3.5 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#00AE42] focus:bg-[#222] transition-all font-medium text-sm"
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                        <input
-                                            type={mostrarPassword ? 'text' : 'password'}
-                                            placeholder="Contraseña"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:bg-white/10 transition-all"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setMostrarPassword(!mostrarPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
-                                        >
-                                            {mostrarPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                        </button>
+                                    <div className="group">
+                                        <div className="relative">
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-[#00AE42] transition-colors" />
+                                            <input
+                                                type={mostrarPassword ? 'text' : 'password'}
+                                                placeholder="Contraseña"
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                className="w-full pl-12 pr-12 py-3.5 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#00AE42] focus:bg-[#222] transition-all font-medium text-sm"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setMostrarPassword(!mostrarPassword)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
+                                            >
+                                                {mostrarPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {tipoModal === 'registro' && (
-                                        <div className="relative">
-                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                            <input
-                                                type={mostrarPassword ? 'text' : 'password'}
-                                                placeholder="Confirmar contraseña"
-                                                value={confirmPassword}
-                                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                                className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:bg-white/10 transition-all"
-                                            />
+                                        <div className="group">
+                                            <div className="relative">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-[#00AE42] transition-colors" />
+                                                <input
+                                                    type={mostrarPassword ? 'text' : 'password'}
+                                                    placeholder="Confirmar contraseña"
+                                                    value={confirmPassword}
+                                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                                    className="w-full pl-12 pr-4 py-3.5 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#00AE42] focus:bg-[#222] transition-all font-medium text-sm"
+                                                />
+                                            </div>
                                         </div>
                                     )}
 
@@ -178,10 +187,10 @@ export default function ModalUsuario() {
                                     <AnimatePresence>
                                         {error && (
                                             <motion.div
-                                                initial={{ opacity: 0, y: -10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center"
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-xs font-bold text-center"
                                             >
                                                 {error}
                                             </motion.div>
@@ -192,38 +201,28 @@ export default function ModalUsuario() {
                                     <button
                                         type="submit"
                                         disabled={enviando}
-                                        className="w-full py-4 bg-gradient-to-r from-teal-500 to-emerald-600 text-white dark:text-black font-bold text-lg rounded-xl hover:from-teal-400 hover:to-emerald-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20 group"
+                                        className="w-full py-4 bg-[#00AE42] hover:bg-[#008a34] text-white font-bold text-sm rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#00AE42]/10 mt-4 group"
                                     >
                                         {enviando ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />
                                         ) : (
                                             <>
-                                                {tipoModal === 'login' ? 'Entrar' : 'Crear Cuenta'}
-                                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                                {tipoModal === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                             </>
                                         )}
                                     </button>
                                 </form>
 
-                                {/* Separador */}
-                                <div className="relative my-8">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-white/10"></div>
-                                    </div>
-                                    <div className="relative flex justify-center">
-                                        <span className="px-4 bg-gray-900 text-gray-500 text-sm">o</span>
-                                    </div>
-                                </div>
-
-                                {/* Cambiar tipo */}
-                                <div className="text-center">
-                                    <p className="text-gray-400">
-                                        {tipoModal === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
+                                {/* Footer */}
+                                <div className="mt-8 pt-6 border-t border-gray-800 text-center">
+                                    <p className="text-gray-500 text-sm">
+                                        {tipoModal === 'login' ? '¿Nuevo en Grana3D?' : '¿Ya tenés cuenta?'}
                                         <button
                                             onClick={cambiarTipo}
-                                            className="ml-2 text-teal-400 hover:text-teal-300 font-bold transition-colors"
+                                            className="ml-2 text-[#00AE42] hover:underline font-bold transition-colors"
                                         >
-                                            {tipoModal === 'login' ? 'Crear una' : 'Iniciar sesión'}
+                                            {tipoModal === 'login' ? 'Crear cuenta' : 'Ingresar'}
                                         </button>
                                     </p>
                                 </div>

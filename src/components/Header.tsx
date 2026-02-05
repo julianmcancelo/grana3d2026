@@ -47,57 +47,57 @@ export default function Header() {
     return (
         <>
             {/* Top Bar - Black */}
-            <div className="bg-black text-white text-sm hidden lg:block border-b border-white/10">
+            <div className="bg-[#111] text-white text-[11px] font-medium hidden lg:block border-b border-gray-800">
                 <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
                     <div className="flex items-center gap-6">
                         <span className="flex items-center gap-2">
                             <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00AE42] opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00AE42]"></span>
                             </span>
-                            Envío gratis en compras +$50.000
+                            ENVÍO GRATIS EN COMPRAS +$50.000
                         </span>
                     </div>
                     <div className="flex items-center gap-4 text-gray-400">
                         {estaAutenticado ? (
-                            <span>Hola, <span className="text-white font-medium">{usuario?.nombre}</span></span>
+                            <span>HOLA, <span className="text-white font-bold uppercase">{usuario?.nombre}</span></span>
                         ) : (
-                            <Link href="/login" className="hover:text-white transition-colors">
-                                Iniciar Sesión
+                            <Link href="/login" className="hover:text-[#00AE42] transition-colors uppercase">
+                                Iniciar Sesión / Registrarse
                             </Link>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Main Header - Dark Glass */}
-            <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-black/80 backdrop-blur-md border-b border-white/10' : 'bg-black border-b border-white/10'}`}>
+            {/* Main Header */}
+            <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#111]/95 backdrop-blur-md border-b border-gray-800 shadow-xl' : 'bg-[#111] border-b border-gray-800'}`}>
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex items-center justify-between h-16 lg:h-20">
 
                         {/* Logo */}
-                        <Link href="/" className="flex items-center gap-2 shrink-0">
-                            <Logo className="w-10 h-10 text-white" showText={true} />
+                        <Link href="/" className="flex items-center gap-2 shrink-0 group">
+                            <Logo className="w-10 h-10 text-white group-hover:text-[#00AE42] transition-colors" showText={true} />
                         </Link>
 
-                        {/* Search - Dark Input */}
-                        <form className="hidden md:flex flex-1 max-w-xl mx-8">
-                            <div className="relative w-full">
+                        {/* Search - Bambu Style Input */}
+                        <form className="hidden md:flex flex-1 max-w-xl mx-12">
+                            <div className="relative w-full group">
                                 <input
                                     type="text"
                                     value={busqueda}
                                     onChange={(e) => setBusqueda(e.target.value)}
-                                    placeholder="¿Qué estás buscando?"
-                                    className="w-full px-4 py-3 pl-4 pr-12 bg-white/10 border border-white/10 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 text-white placeholder-gray-500 transition-all"
+                                    placeholder="Buscar productos..."
+                                    className="w-full px-4 py-2.5 pl-4 pr-10 bg-[#222] border border-gray-700 rounded-lg focus:outline-none focus:border-[#00AE42] focus:bg-[#2a2a2a] text-white placeholder-gray-500 transition-all text-sm"
                                 />
-                                <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 p-2 bg-teal-500 text-black rounded-full hover:bg-teal-400 transition-colors">
-                                    <Search className="w-5 h-5" />
+                                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#00AE42] transition-colors">
+                                    <Search className="w-4 h-4" />
                                 </button>
                             </div>
                         </form>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             <button className="md:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10">
                                 <Search className="w-5 h-5" />
                             </button>
@@ -109,20 +109,20 @@ export default function Header() {
                                 onMouseLeave={() => setUserMenuAbierto(false)}
                             >
                                 {estaAutenticado ? (
-                                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 transition-colors">
-                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-black font-bold text-sm">
+                                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#00AE42] bg-[#00AE42]/10 hover:bg-[#00AE42]/20 transition-colors">
+                                        <div className="w-7 h-7 rounded-full bg-[#00AE42] flex items-center justify-center text-black font-bold text-sm">
                                             {usuario?.nombre?.charAt(0).toUpperCase()}
                                         </div>
-                                        <span className="text-sm font-medium max-w-[100px] truncate">{usuario?.nombre?.split(' ')[0]}</span>
+                                        <span className="text-sm font-bold max-w-[100px] truncate uppercase">{usuario?.nombre?.split(' ')[0]}</span>
                                         <ChevronDown className="w-4 h-4" />
                                     </button>
                                 ) : (
                                     <Link
                                         href="/login"
-                                        className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-400 text-black font-bold rounded-lg transition-colors"
+                                        className="hidden lg:flex p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
+                                        title="Cuenta"
                                     >
-                                        <User className="w-4 h-4" />
-                                        Conectarse
+                                        <User className="w-5 h-5" />
                                     </Link>
                                 )}
 
@@ -132,27 +132,27 @@ export default function Header() {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: 10 }}
-                                            className="absolute top-full right-0 mt-2 w-56 bg-gray-900 rounded-xl shadow-xl border border-white/10 overflow-hidden"
+                                            className="absolute top-full right-0 mt-2 w-56 bg-[#1a1a1a] rounded-lg shadow-2xl border border-gray-800 overflow-hidden"
                                         >
-                                            <div className="px-4 py-3 bg-black/20 border-b border-white/10">
-                                                <p className="font-medium text-white">{usuario?.nombre}</p>
-                                                <p className="text-sm text-gray-500 truncate">{usuario?.email}</p>
+                                            <div className="px-4 py-3 bg-black/20 border-b border-gray-800">
+                                                <p className="font-bold text-white text-sm">{usuario?.nombre}</p>
+                                                <p className="text-xs text-gray-500 truncate">{usuario?.email}</p>
                                             </div>
                                             <div className="py-2">
-                                                <Link href="/mis-pedidos" className="flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-teal-400 hover:bg-white/5">
+                                                <Link href="/mis-pedidos" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:text-[#00AE42] hover:bg-white/5">
                                                     <Package className="w-4 h-4" /> Mis Pedidos
                                                 </Link>
-                                                <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-teal-400 hover:bg-white/5">
+                                                <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:text-[#00AE42] hover:bg-white/5">
                                                     <Heart className="w-4 h-4" /> Favoritos
                                                 </a>
                                                 {esAdmin && (
-                                                    <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 text-teal-400 hover:bg-white/5">
+                                                    <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#00AE42] hover:bg-white/5">
                                                         <Settings className="w-4 h-4" /> Panel Admin
                                                     </Link>
                                                 )}
                                             </div>
-                                            <div className="py-2 border-t border-white/10">
-                                                <button onClick={cerrarSesion} className="flex items-center gap-3 px-4 py-2.5 text-red-400 hover:bg-red-500/10 w-full">
+                                            <div className="py-2 border-t border-gray-800">
+                                                <button onClick={cerrarSesion} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 w-full">
                                                     <LogOut className="w-4 h-4" /> Cerrar Sesión
                                                 </button>
                                             </div>
@@ -161,7 +161,7 @@ export default function Header() {
                                 </AnimatePresence>
                             </div>
 
-                            <button className="hidden sm:flex p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10">
+                            <button className="hidden sm:flex p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10">
                                 <Heart className="w-5 h-5" />
                             </button>
 
@@ -170,11 +170,11 @@ export default function Header() {
                             {/* Cart */}
                             <button
                                 onClick={abrirCarrito}
-                                className="relative p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
+                                className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 group"
                             >
-                                <ShoppingCart className="w-5 h-5" />
+                                <ShoppingCart className="w-5 h-5 group-hover:text-[#00AE42] transition-colors" />
                                 {cantidadTotal > 0 && (
-                                    <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-teal-500 text-black text-[10px] font-bold rounded-full flex items-center justify-center">
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#00AE42] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                                         {cantidadTotal > 9 ? '9+' : cantidadTotal}
                                     </span>
                                 )}
@@ -182,7 +182,7 @@ export default function Header() {
 
                             {/* Mobile Menu Toggle */}
                             <button
-                                className="lg:hidden p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
+                                className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
                                 onClick={() => setMenuMovil(!menuMovil)}
                             >
                                 {menuMovil ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -191,29 +191,33 @@ export default function Header() {
                     </div>
                 </div>
 
-                {/* Categories Nav - Dark */}
-                <div className="hidden lg:block border-t border-white/5 bg-black/50 backdrop-blur-sm">
+                {/* Categories Nav - Bambu Clean Bar */}
+                <div className="hidden lg:block bg-[#1a1a1a] border-b border-gray-800">
                     <div className="max-w-7xl mx-auto px-4">
-                        <nav className="flex items-center gap-1 py-2">
-                            <Link href="/" className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${esActivo('/') ? "text-teal-400 bg-white/10" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+                        <nav className="flex items-center gap-6 py-0 h-10 text-[13px] font-bold uppercase tracking-wide">
+                            <Link href="/" className={`h-full flex items-center border-b-2 transition-all ${esActivo('/') ? "border-[#00AE42] text-white" : "border-transparent text-gray-400 hover:text-white"}`}>
                                 Inicio
                             </Link>
-                            <Link href="/tienda" className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${esActivo('/tienda') ? "text-teal-400 bg-white/10" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+                            <Link href="/tienda" className={`h-full flex items-center border-b-2 transition-all ${esActivo('/tienda') ? "border-[#00AE42] text-white" : "border-transparent text-gray-400 hover:text-white"}`}>
                                 Tienda
                             </Link>
+
+                            <div className="w-px h-4 bg-gray-700 mx-2" />
 
                             {categorias.slice(0, 5).map((cat) => (
                                 <Link
                                     key={cat.id}
                                     href={`/tienda?categoria=${cat.slug}`}
-                                    className="px-4 py-2 rounded-lg font-medium text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+                                    className="h-full flex items-center border-b-2 border-transparent text-gray-400 hover:text-white hover:border-gray-600 transition-all"
                                 >
                                     {cat.nombre}
                                 </Link>
                             ))}
+                            
+                            <div className="flex-1" />
 
-                            <Link href="#contacto" className="px-4 py-2 rounded-lg font-medium text-sm text-gray-400 hover:text-white hover:bg-white/5">
-                                Contacto
+                            <Link href="#contacto" className="h-full flex items-center border-b-2 border-transparent text-gray-400 hover:text-[#00AE42] transition-all">
+                                Soporte
                             </Link>
                         </nav>
                     </div>
@@ -226,23 +230,23 @@ export default function Header() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="lg:hidden border-t border-white/10 overflow-hidden bg-black"
+                            className="lg:hidden border-t border-gray-800 overflow-hidden bg-[#111]"
                         >
                             <nav className="px-4 py-4 space-y-1">
-                                <Link href="/" className="block px-4 py-3 rounded-lg font-medium text-gray-300 hover:bg-white/5" onClick={() => setMenuMovil(false)}>Inicio</Link>
-                                <Link href="/tienda" className="block px-4 py-3 rounded-lg font-medium text-gray-300 hover:bg-white/5" onClick={() => setMenuMovil(false)}>Tienda</Link>
+                                <Link href="/" className="block px-4 py-3 rounded-lg font-bold text-gray-300 hover:bg-white/5 uppercase text-sm" onClick={() => setMenuMovil(false)}>Inicio</Link>
+                                <Link href="/tienda" className="block px-4 py-3 rounded-lg font-bold text-gray-300 hover:bg-white/5 uppercase text-sm" onClick={() => setMenuMovil(false)}>Tienda</Link>
                                 {categorias.map((cat) => (
-                                    <Link key={cat.id} href={`/tienda?categoria=${cat.slug}`} className="block px-4 py-2 text-gray-400 hover:text-white" onClick={() => setMenuMovil(false)}>
+                                    <Link key={cat.id} href={`/tienda?categoria=${cat.slug}`} className="block px-4 py-2 text-sm text-gray-400 hover:text-white font-medium" onClick={() => setMenuMovil(false)}>
                                         {cat.nombre}
                                     </Link>
                                 ))}
-                                <div className="pt-4 border-t border-white/10">
+                                <div className="pt-4 mt-4 border-t border-gray-800">
                                     {estaAutenticado ? (
-                                        <button onClick={() => { cerrarSesion(); setMenuMovil(false) }} className="flex items-center gap-2 px-4 py-3 text-red-400 w-full hover:bg-white/5">
+                                        <button onClick={() => { cerrarSesion(); setMenuMovil(false) }} className="flex items-center gap-2 px-4 py-3 text-red-400 w-full hover:bg-white/5 font-bold text-sm uppercase">
                                             <LogOut className="w-4 h-4" /> Cerrar sesión
                                         </button>
                                     ) : (
-                                        <Link href="/login" onClick={() => setMenuMovil(false)} className="block w-full px-4 py-3 rounded-xl text-black font-bold text-center bg-teal-500 hover:bg-teal-400">
+                                        <Link href="/login" onClick={() => setMenuMovil(false)} className="block w-full px-4 py-3 rounded-lg text-white font-bold text-center bg-[#00AE42] hover:bg-[#008a34] uppercase text-sm">
                                             Iniciar Sesión
                                         </Link>
                                     )}

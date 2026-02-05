@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased bg-gray-50 dark:bg-black transition-colors duration-300`}>
+      <body className={`${inter.className} antialiased bg-[#FAFAFA] dark:bg-[#050505] transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -29,6 +29,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <UsuarioProvider>
+            <div className="fixed inset-0 z-[-1] bg-grid-pattern opacity-[0.4] pointer-events-none" />
             <ModalUsuario />
             <CarritoProvider>
               <CuponListener />

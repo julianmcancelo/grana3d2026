@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Settings, Save, Loader2, Store, AlertTriangle, Check } from 'lucide-react'
+import { Settings, Save, Loader2, Store, AlertTriangle, Check, ToggleLeft, ToggleRight } from 'lucide-react'
 import api from '@/lib/api'
 
 interface Config {
@@ -34,7 +34,12 @@ export default function ConfiguracionAdmin() {
         try {
             const { data } = await api.get('/admin/configuracion')
             if (data.config) {
-                setConfig(prev => ({ ...prev, ...data.config }))
+                // Ensure boolean conversion if necessary
+                const modo = typeof data.config.modoProximamente === 'string' 
+                    ? data.config.modoProximamente === 'true' 
+                    : data.config.modoProximamente
+
+                setConfig(prev => ({ ...prev, ...data.config, modoProximamente: modo }))
             }
         } catch (error) {
             console.error('Error cargando config:', error)
@@ -60,7 +65,7 @@ export default function ConfiguracionAdmin() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-96">
-                <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#00AE42]" />
             </div>
         )
     }
@@ -69,13 +74,13 @@ export default function ConfiguracionAdmin() {
         <div>
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold mb-2">Configuración</h1>
-                    <p className="text-gray-400">Ajustes generales de la tienda</p>
+                    <h1 className="text-3xl font-black mb-1 text-white tracking-tight">Configuración</h1>
+                    <p className="text-gray-500 text-sm">Control general del sistema.</p>
                 </div>
                 <button
                     onClick={guardarConfig}
                     disabled={guardando}
-                    className="flex items-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-600 text-black font-bold rounded-xl transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#00AE42] hover:bg-[#008a34] text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-[#00AE42]/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {guardando ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -84,119 +89,116 @@ export default function ConfiguracionAdmin() {
                     ) : (
                         <Save className="w-5 h-5" />
                     )}
-                    {guardado ? 'Guardado!' : 'Guardar Cambios'}
+                    {guardado ? 'Guardado' : 'Guardar Cambios'}
                 </button>
             </div>
 
             <div className="space-y-6">
-                {/* Modo Próximamente */}
+                {/* MANTENIMIENTO CARD */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gray-900 border border-white/10 rounded-2xl p-6"
+                    className="bg-[#111] border border-gray-800 rounded-xl overflow-hidden"
                 >
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-3 bg-yellow-500/10 rounded-xl">
-                            <AlertTriangle className="w-6 h-6 text-yellow-500" />
+                    <div className="p-6 border-b border-gray-800 flex items-center gap-4">
+                        <div className="p-3 bg-orange-500/10 rounded-lg">
+                            <AlertTriangle className="w-6 h-6 text-orange-500" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold">Modo Próximamente</h2>
-                            <p className="text-sm text-gray-400">Muestra un mensaje de "próximamente" en la tienda</p>
+                            <h2 className="text-lg font-bold text-white">Estado de la Tienda</h2>
+                            <p className="text-sm text-gray-500">Control de acceso público y modo mantenimiento.</p>
                         </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <label className="flex items-center gap-4 cursor-pointer p-4 bg-black/30 rounded-xl hover:bg-black/50 transition-colors">
-                            <div className="relative">
-                                <input
-                                    type="checkbox"
-                                    checked={config.modoProximamente}
-                                    onChange={(e) => setConfig({ ...config, modoProximamente: e.target.checked })}
-                                    className="sr-only peer"
-                                />
-                                <div className="w-14 h-8 bg-gray-700 rounded-full peer-checked:bg-teal-500 transition-colors" />
-                                <div className="absolute top-1 left-1 w-6 h-6 bg-white rounded-full peer-checked:translate-x-6 transition-transform" />
-                            </div>
+                    <div className="p-6 space-y-6">
+                        <div className="flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl border border-gray-800">
                             <div>
-                                <div className="font-bold">Activar modo Próximamente</div>
-                                <div className="text-sm text-gray-400">La tienda mostrará un mensaje en lugar de los productos</div>
+                                <div className="font-bold text-white mb-1">Modo Mantenimiento</div>
+                                <div className="text-sm text-gray-500">Si está activo, los clientes verán la pantalla de espera.</div>
                             </div>
-                        </label>
-
-                        {config.modoProximamente && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                className="overflow-hidden"
-                            >
-                                <label className="block text-sm font-medium text-gray-400 mb-2">Mensaje a mostrar</label>
-                                <textarea
-                                    value={config.textoProximamente}
-                                    onChange={(e) => setConfig({ ...config, textoProximamente: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500 resize-none"
-                                    placeholder="¡Estamos preparando algo increíble!"
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={config.modoProximamente} 
+                                    onChange={(e) => setConfig({ ...config, modoProximamente: e.target.checked })}
+                                    className="sr-only peer" 
                                 />
-                            </motion.div>
-                        )}
+                                <div className="w-14 h-7 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#00AE42] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#00AE42]"></div>
+                            </label>
+                        </div>
+
+                        <motion.div
+                            initial={false}
+                            animate={{ height: config.modoProximamente ? 'auto' : 0, opacity: config.modoProximamente ? 1 : 0 }}
+                            className="overflow-hidden"
+                        >
+                            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Mensaje de Espera</label>
+                            <textarea
+                                value={config.textoProximamente}
+                                onChange={(e) => setConfig({ ...config, textoProximamente: e.target.value })}
+                                rows={3}
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] resize-none transition-colors"
+                                placeholder="Escribí un mensaje copado..."
+                            />
+                        </motion.div>
                     </div>
                 </motion.div>
 
-                {/* Datos de la Tienda */}
+                {/* DATOS CARD */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-gray-900 border border-white/10 rounded-2xl p-6"
+                    className="bg-[#111] border border-gray-800 rounded-xl overflow-hidden"
                 >
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-3 bg-teal-500/10 rounded-xl">
-                            <Store className="w-6 h-6 text-teal-500" />
+                    <div className="p-6 border-b border-gray-800 flex items-center gap-4">
+                        <div className="p-3 bg-[#00AE42]/10 rounded-lg">
+                            <Store className="w-6 h-6 text-[#00AE42]" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold">Datos de la Tienda</h2>
-                            <p className="text-sm text-gray-400">Información de contacto y configuración básica</p>
+                            <h2 className="text-lg font-bold text-white">Información Pública</h2>
+                            <p className="text-sm text-gray-500">Datos de contacto visibles en el footer.</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-2">Nombre de la tienda</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Nombre de la tienda</label>
                             <input
                                 type="text"
                                 value={config.nombreTienda}
                                 onChange={(e) => setConfig({ ...config, nombreTienda: e.target.value })}
-                                className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-2">WhatsApp</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">WhatsApp</label>
                             <input
                                 type="tel"
                                 value={config.whatsapp}
                                 onChange={(e) => setConfig({ ...config, whatsapp: e.target.value })}
-                                placeholder="+54 9 11 XXXX XXXX"
-                                className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                                placeholder="+54 9 11..."
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Email de Contacto</label>
                             <input
                                 type="email"
                                 value={config.email}
                                 onChange={(e) => setConfig({ ...config, email: e.target.value })}
-                                placeholder="contacto@tienda.com"
-                                className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                                placeholder="hola@..."
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-2">Instagram</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Instagram</label>
                             <input
                                 type="text"
                                 value={config.instagram}
                                 onChange={(e) => setConfig({ ...config, instagram: e.target.value })}
-                                placeholder="@tu_tienda"
-                                className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                                placeholder="@usuario"
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
                             />
                         </div>
                     </div>

@@ -3,9 +3,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { motion, Variants } from 'framer-motion'
 import {
-    ChevronRight, Phone, Mail, Truck, CreditCard, Shield,
-    Package, Headphones, Sparkles, Star, ShoppingCart, Heart, Image as ImageIcon,
-    Facebook, Instagram, MessageCircle, Filter, User
+    ChevronRight, ShoppingCart, Image as ImageIcon,
+    Filter, Package, Grid, List
 } from 'lucide-react'
 import Header from '@/components/Header'
 import CarritoDrawer from '@/components/CarritoDrawer'
@@ -27,14 +26,9 @@ interface TiendaClientProps {
     config: { modoProximamente: boolean; textoProximamente: string }
 }
 
-const fadeInUp: Variants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-}
-
-const staggerContainer: Variants = {
+const fadeIn: Variants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+    visible: { opacity: 1, transition: { duration: 0.5 } },
 }
 
 function ProductCard({ producto }: { producto: Producto }) {
@@ -44,52 +38,53 @@ function ProductCard({ producto }: { producto: Producto }) {
     const descuento = tieneOferta ? Math.round((1 - producto.precioOferta! / producto.precio) * 100) : 0
 
     return (
-        <motion.div variants={fadeInUp} className="group relative bg-white dark:bg-[#111] rounded-[2rem] overflow-hidden hover:shadow-2xl hover:shadow-black/5 dark:hover:shadow-white/5 transition-all duration-500">
-            <Link href={`/producto/${producto.slug}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-100 dark:bg-[#1a1a1a]">
+        <motion.div 
+            variants={fadeIn} 
+            className="group relative bg-white dark:bg-[#1a1a1a] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 hover:border-[#00AE42] dark:hover:border-[#00AE42] transition-all duration-300"
+        >
+            <Link href={`/producto/${producto.slug}`} className="block relative aspect-square overflow-hidden bg-gray-50 dark:bg-[#111]">
                 {tieneOferta && (
-                    <div className="absolute top-4 left-4 z-10 bg-white/90 dark:bg-black/90 backdrop-blur text-black dark:text-white text-[10px] font-black tracking-widest px-3 py-1.5 rounded-full uppercase">
-                        {descuento}% OFF
+                    <div className="absolute top-2 left-2 z-10 bg-[#00AE42] text-white text-[10px] font-bold px-2 py-1 rounded-sm uppercase tracking-wide">
+                        -{descuento}%
                     </div>
                 )}
                 {producto.imagenes[0] ? (
-                    <img src={producto.imagenes[0]} alt={producto.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out" />
+                    <img src={producto.imagenes[0]} alt={producto.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-12 h-12 text-gray-300 dark:text-gray-700" /></div>
+                    <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700">
+                        <ImageIcon className="w-12 h-12" />
+                    </div>
                 )}
-
-                {/* Quick Action Overlay */}
-                <div className="absolute inset-x-4 bottom-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-20">
-                    <button 
+                
+                {/* Botón flotante al hacer hover */}
+                <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 flex justify-center">
+                     <button 
                         onClick={(e) => {
                             e.preventDefault()
                             agregarProducto({ id: producto.id, nombre: producto.nombre, precio, imagen: producto.imagenes[0] || '' })
                         }}
-                        className="w-full py-3 bg-white dark:bg-black text-black dark:text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-teal-500 hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                        className="w-full py-2 bg-[#00AE42] text-white font-bold text-sm rounded-lg shadow-lg hover:bg-[#008a34] transition-colors flex items-center justify-center gap-2"
                     >
                         <ShoppingCart className="w-4 h-4" /> Agregar
                     </button>
                 </div>
             </Link>
 
-            <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                    {producto.categoria && (
-                        <span className="text-[10px] font-bold tracking-widest uppercase text-teal-600 dark:text-teal-400">
-                            {producto.categoria.nombre}
-                        </span>
-                    )}
+            <div className="p-4">
+                <div className="text-[10px] font-bold text-[#00AE42] uppercase tracking-wider mb-1">
+                    {producto.categoria?.nombre || 'General'}
                 </div>
                 
                 <Link href={`/producto/${producto.slug}`}>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-tight group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 min-h-[40px] leading-snug group-hover:text-[#00AE42] transition-colors">
                         {producto.nombre}
                     </h3>
                 </Link>
 
-                <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-black text-gray-900 dark:text-white">${precio.toLocaleString('es-AR')}</span>
+                <div className="flex items-center gap-2 mt-2">
+                    <span className="text-lg font-bold text-gray-900 dark:text-white">${precio.toLocaleString('es-AR')}</span>
                     {tieneOferta && (
-                        <span className="text-sm text-gray-400 line-through decoration-2">${producto.precio.toLocaleString('es-AR')}</span>
+                        <span className="text-xs text-gray-400 line-through">${producto.precio.toLocaleString('es-AR')}</span>
                     )}
                 </div>
             </div>
@@ -97,32 +92,17 @@ function ProductCard({ producto }: { producto: Producto }) {
     )
 }
 
-function CategoryCard({ categoria, index }: { categoria: Categoria; index: number }) {
+function CategoryPill({ categoria }: { categoria: Categoria }) {
     return (
-        <motion.div variants={fadeInUp} className="h-full">
-            <Link href={`/tienda?categoria=${categoria.slug}`} className="block h-full group relative overflow-hidden rounded-[2rem] bg-gray-100 dark:bg-[#111] p-8 transition-all hover:bg-teal-500 hover:dark:bg-teal-600">
-                <div className="relative z-10 flex flex-col h-full justify-between">
-                    <div>
-                        <div className="w-14 h-14 bg-white dark:bg-black rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-500">
-                            <Package className="w-6 h-6 text-black dark:text-white" />
-                        </div>
-                        <h3 className="text-2xl font-black text-gray-900 dark:text-white group-hover:text-white mb-2 transition-colors">
-                            {categoria.nombre}
-                        </h3>
-                        <p className="text-gray-500 dark:text-gray-400 group-hover:text-white/80 transition-colors line-clamp-2">
-                            {categoria.descripcion || 'Explorar colección'}
-                        </p>
-                    </div>
-                    
-                    <div className="mt-8 flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white group-hover:text-white group-hover:translate-x-2 transition-all">
-                        Ver productos <ChevronRight className="w-4 h-4" />
-                    </div>
-                </div>
-                
-                {/* Decoration */}
-                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl group-hover:bg-white/20 transition-colors" />
-            </Link>
-        </motion.div>
+        <Link 
+            href={`/tienda?categoria=${categoria.slug}`} 
+            className="flex items-center gap-3 px-5 py-3 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-lg hover:border-[#00AE42] hover:text-[#00AE42] transition-all group"
+        >
+            <div className="w-8 h-8 bg-gray-100 dark:bg-[#111] rounded-md flex items-center justify-center text-gray-500 group-hover:text-[#00AE42] transition-colors">
+                <Package className="w-4 h-4" />
+            </div>
+            <span className="font-bold text-sm text-gray-700 dark:text-gray-200 group-hover:text-[#00AE42]">{categoria.nombre}</span>
+        </Link>
     )
 }
 
@@ -132,132 +112,94 @@ export default function TiendaClient({ categorias, productosDestacados, todosPro
     }
 
     return (
-        <div className="bg-[#FAFAFA] dark:bg-[#050505] min-h-screen text-gray-900 dark:text-white font-sans selection:bg-teal-500 selection:text-white">
+        <div className="bg-transparent min-h-screen text-gray-900 dark:text-white font-sans selection:bg-[#00AE42] selection:text-white">
             <Header />
             <CarritoDrawer />
             <ModalUsuario />
 
-            {/* Hero Section */}
-            <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-teal-100/40 via-transparent to-transparent dark:from-teal-900/20" />
-                
-                <div className="max-w-7xl mx-auto px-4 relative z-10">
-                    <div className="flex flex-col lg:flex-row items-center gap-16">
-                        <div className="flex-1 text-center lg:text-left">
-                            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-                                <span className="inline-block py-1 px-3 rounded-full bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-black tracking-widest uppercase mb-6">
-                                    Tienda Oficial
-                                </span>
-                                <h1 className="text-5xl lg:text-8xl font-black mb-8 leading-[0.9] tracking-tight text-gray-900 dark:text-white">
-                                    Diseño <br/>
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-emerald-600">Materializado.</span>
-                                </h1>
-                                <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                                    Impresión 3D de alta fidelidad. Desde prototipos funcionales hasta piezas de diseño final.
-                                </p>
-                                <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-                                    <Link href="#productos" className="px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-black font-bold rounded-full hover:scale-105 transition-transform shadow-xl shadow-teal-500/10">
-                                        Ver Catálogo
-                                    </Link>
-                                    <a href="https://wa.me/5491112345678" target="_blank" className="px-8 py-4 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold rounded-full hover:bg-gray-50 dark:hover:bg-white/10 transition-colors">
-                                        Cotizar Diseño
-                                    </a>
-                                </div>
-                            </motion.div>
+            {/* Header de Tienda - Minimalista Bambu Style */}
+            <div className="bg-white/80 dark:bg-[#111]/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 pt-32 pb-12">
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div>
+                            <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">
+                                Tienda Grana3D
+                            </h1>
+                            <p className="text-gray-500 dark:text-gray-400 max-w-xl">
+                                Componentes, impresoras y servicios de ingeniería 3D. Calidad profesional garantizada.
+                            </p>
                         </div>
-                        
-                        <div className="flex-1 w-full max-w-md hidden lg:block">
-                            <motion.div 
-                                initial={{ opacity: 0, scale: 0.8 }} 
-                                animate={{ opacity: 1, scale: 1 }} 
-                                transition={{ duration: 0.8, delay: 0.2 }}
-                                className="relative aspect-square"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-tr from-teal-500 to-emerald-500 rounded-full blur-[100px] opacity-20 animate-pulse" />
-                                {/* Abstract decorative 3D shape representation could go here */}
-                                <div className="relative w-full h-full bg-gradient-to-br from-gray-100 to-white dark:from-gray-800 dark:to-gray-900 rounded-[3rem] border border-white/20 shadow-2xl flex items-center justify-center overflow-hidden">
-                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-                                    <div className="text-center p-8">
-                                        <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-teal-500 to-emerald-600 mb-2">3D</div>
-                                        <div className="text-sm font-bold uppercase tracking-[0.5em] text-gray-400">Engineering</div>
-                                    </div>
-                                </div>
-                            </motion.div>
+                        <div className="flex gap-2">
+                             <button className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-sm font-bold flex items-center gap-2 hover:border-[#00AE42] hover:text-[#00AE42] transition-colors">
+                                <Filter className="w-4 h-4" /> Filtros
+                             </button>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            {/* Categorías */}
-            {categorias.length > 0 && (
-                <section className="py-20 lg:py-32">
-                    <div className="max-w-7xl mx-auto px-4">
-                        <div className="flex items-end justify-between mb-12">
-                            <div>
-                                <h2 className="text-3xl font-black mb-2 dark:text-white">Colecciones</h2>
-                                <p className="text-gray-500">Explorá por categoría</p>
-                            </div>
+            <main className="max-w-7xl mx-auto px-4 py-12">
+                {/* Categorías Rápidas */}
+                {categorias.length > 0 && (
+                    <section className="mb-16">
+                        <div className="flex items-center justify-between mb-6">
+                             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Categorías</h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
-                            {categorias.slice(0, 4).map((cat, i) => (
-                                <CategoryCard key={cat.id} categoria={cat} index={i} />
-                            ))}
+                        <div className="flex flex-wrap gap-4">
+                            {categorias.map(cat => <CategoryPill key={cat.id} categoria={cat} />)}
                         </div>
-                    </div>
-                </section>
-            )}
+                    </section>
+                )}
 
-            {/* Destacados */}
-            {productosDestacados.length > 0 && (
-                <section className="py-20 bg-white dark:bg-[#0A0A0A]">
-                    <div className="max-w-7xl mx-auto px-4">
-                        <div className="mb-12 text-center">
-                            <span className="text-teal-500 font-bold tracking-widest text-xs uppercase mb-2 block">Tendencias</span>
-                            <h2 className="text-4xl lg:text-5xl font-black dark:text-white">Lo más buscado</h2>
+                {/* Destacados */}
+                {productosDestacados.length > 0 && (
+                    <section className="mb-16">
+                        <div className="flex items-center gap-3 mb-6">
+                            <h2 className="text-2xl font-black text-gray-900 dark:text-white">Destacados</h2>
+                            <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {productosDestacados.map((p) => <ProductCard key={p.id} producto={p} />)}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                            {productosDestacados.map(p => <ProductCard key={p.id} producto={p} />)}
                         </div>
-                    </div>
-                </section>
-            )}
+                    </section>
+                )}
 
-            {/* Todos los productos */}
-            <section id="productos" className="py-20 lg:py-32">
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
-                        <h2 className="text-3xl font-black dark:text-white">Catálogo Completo</h2>
-                        <button className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-gray-50 transition-colors font-bold text-sm">
-                            <Filter className="w-4 h-4" /> Filtros
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {todosProductos.map((p) => <ProductCard key={p.id} producto={p} />)}
+                {/* Todos los Productos */}
+                <section id="productos">
+                    <div className="flex items-center gap-3 mb-6">
+                        <h2 className="text-2xl font-black text-gray-900 dark:text-white">Catálogo Completo</h2>
+                        <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
                     </div>
                     
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                        {todosProductos.map(p => <ProductCard key={p.id} producto={p} />)}
+                    </div>
+
                     {todosProductos.length === 0 && (
-                         <div className="text-center py-20 bg-gray-100 dark:bg-white/5 rounded-[2rem]">
-                            <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                            <h3 className="text-xl font-bold dark:text-white">Sin productos aún</h3>
-                            <p className="text-gray-500">Estamos cargando el stock.</p>
+                         <div className="py-24 text-center bg-white dark:bg-[#111] rounded-xl border border-gray-200 dark:border-gray-800">
+                            <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">No hay productos disponibles</h3>
+                            <p className="text-gray-500 text-sm">Estamos actualizando el inventario.</p>
                          </div>
                     )}
-                </div>
-            </section>
+                </section>
+            </main>
 
-            {/* Footer Simple */}
-            <footer className="py-12 border-t border-gray-200 dark:border-white/5 bg-white dark:bg-black text-center">
-                <div className="max-w-7xl mx-auto px-4 flex flex-col items-center">
-                    <div className="w-12 h-12 bg-black dark:bg-white rounded-xl flex items-center justify-center text-white dark:text-black font-black text-xl mb-6">G</div>
-                    <p className="text-gray-500 text-sm">© 2026 Grana3D. Buenos Aires, Argentina.</p>
+            {/* Footer Compacto */}
+            <footer className="bg-white dark:bg-[#111] border-t border-gray-200 dark:border-gray-800 py-12 mt-12">
+                <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-gray-500">
+                    <div className="flex items-center gap-2 font-bold text-gray-900 dark:text-white">
+                        <div className="w-6 h-6 bg-[#00AE42] rounded flex items-center justify-center text-white text-xs">G</div>
+                        Grana3D
+                    </div>
+                    <div className="flex gap-6">
+                        <a href="#" className="hover:text-[#00AE42]">Términos</a>
+                        <a href="#" className="hover:text-[#00AE42]">Privacidad</a>
+                        <a href="#" className="hover:text-[#00AE42]">Contacto</a>
+                    </div>
+                    <div>© 2026 Grana3D</div>
                 </div>
             </footer>
-
-            {/* Float Button */}
-            <a href="https://wa.me/5491112345678" target="_blank" className="fixed bottom-8 right-8 w-16 h-16 bg-[#25D366] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-50">
-                <MessageCircle className="w-8 h-8 fill-current" />
-            </a>
         </div>
     )
 }

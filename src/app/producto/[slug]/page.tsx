@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import ProductoClient from './ProductoClient'
 import { Metadata } from 'next'
+import { getGlobalConfig } from '@/lib/config'
+import MantenimientoEpicardo from '@/components/MantenimientoEpicardo'
 
 // Disable caching for dynamic content
 export const dynamic = 'force-dynamic'
@@ -33,6 +35,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductoPage({ params }: Props) {
+    const config = await getGlobalConfig()
+
+    if (config.modoProximamente) {
+        return <MantenimientoEpicardo texto={config.textoProximamente} />
+    }
+
     const producto = await getProducto(params.slug)
 
     if (!producto) {
