@@ -8,7 +8,7 @@ set -e
 APP_NAME="grana3d-next"
 DOMAIN="grana3d.com.ar"
 PORT=3000
-REPO_URL="https://github.com/julianmcancelo/grana3d-next.git" # AJUSTAR URL
+REPO_URL="https://github.com/julianmcancelo/grana3d2026.git" # AJUSTAR URL
 INSTALL_DIR="/var/www/grana3d-next"
 DB_PASS="admin123" # Debería coincidir con tu DB real
 
