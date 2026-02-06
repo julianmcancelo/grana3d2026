@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { User, Lock, ArrowRight, Eye, EyeOff, Sparkles, Loader2, AlertCircle } from 'lucide-react'
+import { User, Lock, ArrowRight, Eye, EyeOff, Loader2, AlertCircle, Box, ArrowLeft, Check } from 'lucide-react'
 import { useUsuario } from '@/context/UsuarioContext'
 
 export default function LoginPage() {
@@ -24,11 +24,7 @@ export default function LoginPage() {
         try {
             const success = await login(email, password)
             if (success) {
-                // Redirigir según rol idealmente, pero por ahora a home o tienda
                 router.push('/')
-            } else {
-                // El error ya se muestra con SweetAlert en el context, pero podemos mostrar uno local si falla
-                // setError('Credenciales inválidas')
             }
         } catch (err) {
             console.error(err)
@@ -39,145 +35,171 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-black flex text-white">
-            {/* Left Side - Visual Showcase (Desktop only) */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gray-900 items-center justify-center">
-                {/* Animated Background Gradients */}
-                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-900/40 via-gray-900 to-black z-0" />
-                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-900/20 rounded-full blur-[100px] z-0" />
+        <div className="min-h-screen bg-[#050505] flex text-white font-sans selection:bg-[#00AE42] selection:text-white">
+            
+            {/* LEFT SIDE - BAMBU AESTHETIC VISUAL */}
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0a0a0a] items-center justify-center border-r border-gray-900">
+                {/* Grid Background */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+                
+                {/* Glow Effect */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00AE42]/5 rounded-full blur-[120px]" />
 
-                {/* Content */}
-                <div className="relative z-10 flex flex-col items-center text-center p-12">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        className="mb-8"
+                {/* Animated Filament Spool (Carrete girando) */}
+                <div className="relative z-10 flex flex-col items-center">
+                    <motion.div 
+                        initial={{ rotate: 0 }}
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                        className="relative w-80 h-80 mb-12"
                     >
-                        <div className="w-64 h-64 bg-gradient-to-tr from-teal-500 to-purple-600 rounded-full blur-[60px] opacity-20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
-                        <img
-                            src="https://images.unsplash.com/photo-1633412802994-5c058f151b66?q=80&w=1000&auto=format&fit=crop"
-                            alt="3D Art"
-                            className="w-80 h-80 object-cover rounded-3xl shadow-2xl border border-white/10 rotate-3 hover:rotate-6 transition-transform duration-700"
-                        />
+                        {/* Spool Body */}
+                        <div className="absolute inset-0 rounded-full border-[16px] border-gray-800 bg-[#111] shadow-2xl flex items-center justify-center">
+                            {/* Filament Strands */}
+                            <div className="absolute inset-2 rounded-full border-[24px] border-[#00AE42]/20 border-t-[#00AE42] border-r-[#00AE42]/80 border-b-[#00AE42]/40 border-l-[#00AE42]/10" />
+                            
+                            {/* Spool Center Label */}
+                            <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center relative shadow-inner overflow-hidden">
+                                <div className="absolute inset-0 bg-gray-100 opacity-50" />
+                                <div className="relative z-10 flex flex-col items-center">
+                                    <Box className="w-8 h-8 text-black mb-1" />
+                                    <span className="text-[10px] font-black text-black tracking-widest uppercase">GRANA3D</span>
+                                    <span className="text-[8px] font-bold text-gray-500 uppercase mt-0.5">PLA MATTE</span>
+                                </div>
+                                {/* Barcode Lines */}
+                                <div className="absolute bottom-4 flex gap-0.5 h-3 opacity-30">
+                                    {[...Array(10)].map((_,i) => <div key={i} className="w-0.5 bg-black" style={{ height: Math.random() * 10 + 2 }} />)}
+                                </div>
+                            </div>
+                        </div>
                     </motion.div>
 
-                    <motion.h2
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.5 }}
-                        className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-purple-400"
-                    >
-                        Transformando Ideas
-                    </motion.h2>
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.7 }}
-                        className="text-gray-400 max-w-md text-lg"
-                    >
-                        Accedé a tu panel exclusivo y gestioná tus pedidos de impresión 3D a medida.
-                    </motion.p>
+                    <div className="text-center space-y-4 max-w-md">
+                        <motion.h2 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-4xl font-black tracking-tight text-white"
+                        >
+                            Ingeniería <span className="text-[#00AE42]">Avanzada.</span>
+                        </motion.h2>
+                        <motion.p 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="text-gray-500 font-medium"
+                        >
+                            Accedé a tu panel de control y gestioná tus proyectos de impresión 3D con precisión industrial.
+                        </motion.p>
+                    </div>
                 </div>
             </div>
 
-            {/* Right Side - Login Form */}
+            {/* RIGHT SIDE - LOGIN FORM */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-24 relative">
-                {/* Background Decor for Mobile */}
-                <div className="lg:hidden absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="w-full max-w-md space-y-8"
+                    transition={{ duration: 0.5 }}
+                    className="w-full max-w-sm space-y-8"
                 >
-                    <div className="text-center lg:text-left">
-                        <Link href="/" className="inline-flex items-center gap-2 text-teal-500 font-bold mb-8 hover:text-teal-400 transition-colors">
-                            <ArrowRight className="w-4 h-4 rotate-180" /> Volver al inicio
+                    <div>
+                        <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-[#00AE42] font-bold text-sm mb-8 transition-colors group">
+                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Volver a la tienda
                         </Link>
-                        <h1 className="text-4xl lg:text-5xl font-black mb-2 tracking-tight">Bienvenido</h1>
-                        <p className="text-gray-400 text-lg">Inicia sesión para continuar</p>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="w-10 h-10 bg-[#00AE42] rounded-lg flex items-center justify-center text-black">
+                                <Box className="w-6 h-6" />
+                            </div>
+                            <h1 className="text-3xl font-black tracking-tight text-white">Hola de nuevo.</h1>
+                        </div>
+                        <p className="text-gray-500">Ingresá tus credenciales para continuar.</p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-4">
-                            <div className="relative group">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-teal-500 transition-colors" />
-                                <input
-                                    type="email"
-                                    required
-                                    placeholder="Tu email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:bg-white/10 transition-all"
-                                />
+                            <div className="group">
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 group-focus-within:text-[#00AE42] transition-colors">Email</label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 group-focus-within:text-[#00AE42] transition-colors" />
+                                    <input
+                                        type="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-3.5 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#00AE42] focus:bg-[#222] transition-all font-medium text-sm"
+                                        placeholder="nombre@ejemplo.com"
+                                    />
+                                </div>
                             </div>
 
-                            <div className="relative group">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-teal-500 transition-colors" />
-                                <input
-                                    type={mostrarPassword ? 'text' : 'password'}
-                                    required
-                                    placeholder="Tu contraseña"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:bg-white/10 transition-all"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setMostrarPassword(!mostrarPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
-                                >
-                                    {mostrarPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
+                            <div className="group">
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase group-focus-within:text-[#00AE42] transition-colors">Contraseña</label>
+                                    <a href="#" className="text-xs font-bold text-[#00AE42] hover:text-[#008a34]">¿Olvidaste tu contraseña?</a>
+                                </div>
+                                <div className="relative">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 group-focus-within:text-[#00AE42] transition-colors" />
+                                    <input
+                                        type={mostrarPassword ? 'text' : 'password'}
+                                        required
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full pl-12 pr-12 py-3.5 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#00AE42] focus:bg-[#222] transition-all font-medium text-sm"
+                                        placeholder="••••••••"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setMostrarPassword(!mostrarPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
+                                    >
+                                        {mostrarPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         {error && (
-                            <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm">
-                                <AlertCircle className="w-5 h-5" />
+                            <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm font-medium">
+                                <AlertCircle className="w-5 h-5 shrink-0" />
                                 {error}
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between text-sm">
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                                <div className="relative flex items-center">
-                                    <input type="checkbox" className="peer sr-only" />
-                                    <div className="w-5 h-5 border-2 border-gray-600 rounded bg-transparent peer-checked:bg-teal-500 peer-checked:border-teal-500 transition-all" />
-                                    <svg className="absolute w-3 h-3 text-black pointer-events-none opacity-0 peer-checked:opacity-100 left-1 transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
-                                        <polyline points="20 6 9 17 4 12" />
-                                    </svg>
-                                </div>
-                                <span className="text-gray-400 group-hover:text-gray-300 transition-colors">Recordarme</span>
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center h-5">
+                                <input
+                                    id="remember"
+                                    type="checkbox"
+                                    className="w-5 h-5 border border-gray-700 rounded bg-[#1a1a1a] focus:ring-0 focus:ring-offset-0 checked:bg-[#00AE42] checked:border-[#00AE42] transition-all cursor-pointer appearance-none relative checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-xs checked:after:flex checked:after:justify-center checked:after:items-center checked:after:w-full checked:after:h-full"
+                                />
+                            </div>
+                            <label htmlFor="remember" className="text-sm font-medium text-gray-400 cursor-pointer select-none hover:text-white transition-colors">
+                                Mantener sesión iniciada
                             </label>
-                            <a href="#" className="text-teal-500 hover:text-teal-400 transition-colors font-medium">
-                                ¿Olvidaste tu contraseña?
-                            </a>
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-4 bg-gradient-to-r from-teal-500 to-emerald-600 text-black font-bold text-lg rounded-xl hover:shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-4 bg-[#00AE42] hover:bg-[#008a34] text-white font-bold text-sm rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#00AE42]/10 hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {loading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
                                 <>
-                                    Iniciar Sesión
+                                    Ingresar a la Plataforma
                                     <ArrowRight className="w-5 h-5" />
                                 </>
                             )}
                         </button>
                     </form>
 
-                    <div className="mt-8 pt-8 border-t border-white/10 text-center">
-                        <p className="text-gray-400">
-                            ¿No tenés una cuenta?{' '}
-                            <Link href="/registro" className="text-white font-bold hover:text-teal-400 transition-colors inline-block ml-1">
-                                Creá tu cuenta gratis
+                    <div className="pt-8 border-t border-gray-800 text-center">
+                        <p className="text-gray-500 text-sm">
+                            ¿Todavía no tenés cuenta?{' '}
+                            <Link href="/registro" className="text-white font-bold hover:text-[#00AE42] transition-colors inline-block ml-1">
+                                Registrarse gratis
                             </Link>
                         </p>
                     </div>
