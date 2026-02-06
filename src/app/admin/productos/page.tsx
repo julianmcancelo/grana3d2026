@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import api from '@/lib/api'
 import ImageUpload from '@/components/admin/ImageUpload'
+import MarkdownEditor from '@/components/admin/MarkdownEditor'
 
 interface Producto {
     id: string
@@ -327,15 +328,11 @@ export default function ProductosAdmin() {
                                         />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">Descripción</label>
-                                        <textarea
-                                            value={form.descripcion}
-                                            onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-                                            rows={3}
-                                            className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500 resize-none"
-                                        />
-                                    </div>
+                                    <MarkdownEditor
+                                        value={form.descripcion}
+                                        onChange={(val) => setForm({ ...form, descripcion: val })}
+                                        label="Descripción Detallada (Soporta imágenes, listas, negritas...)"
+                                    />
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>

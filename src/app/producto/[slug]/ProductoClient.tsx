@@ -3,6 +3,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { ChevronRight, ShoppingCart, Heart, Share2, Truck, Shield, RotateCcw, Check, Minus, Plus, Package, Image as ImageIcon, Star, CreditCard, ArrowLeft, Box } from 'lucide-react'
 import Header from '@/components/Header'
 import CarritoDrawer from '@/components/CarritoDrawer'
@@ -241,8 +243,10 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                     <h3 className="text-xs font-black text-gray-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
                                         <Package className="w-4 h-4 text-[#00AE42]" /> Especificaciones
                                     </h3>
-                                    <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line bg-gray-50 dark:bg-[#161616] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-                                        {producto.descripcion}
+                                    <div className="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-[#161616] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                            {producto.descripcion}
+                                        </ReactMarkdown>
                                     </div>
                                 </div>
                             )}
