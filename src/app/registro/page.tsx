@@ -61,49 +61,75 @@ export default function RegistroPage() {
                         transition={{ duration: 0.8 }}
                         className="relative mb-12"
                     >
-                        {/* AMS Unit (Sistema Multi-Material) */}
-                        <div className="w-80 h-48 bg-[#1a1a1a] rounded-xl border border-gray-800 shadow-2xl relative flex items-center justify-around px-4 overflow-hidden">
-                            {/* Glass Lid Shine */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+                        {/* AMS Unit (Sistema Multi-Material) - Ultra Realistic */}
+                        <div className="w-96 h-56 bg-[#1a1a1a] rounded-t-2xl rounded-b-lg border border-gray-800 shadow-2xl relative flex items-end justify-around px-4 pb-4 overflow-hidden group perspective-1000">
                             
-                            {/* 4 Spools Rotating */}
+                            {/* Tapa de Vidrio Ahumado con Reflejos */}
+                            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent z-30 pointer-events-none rounded-t-2xl border-t border-white/10 backdrop-blur-[0.5px]">
+                                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-white/5 via-transparent to-transparent opacity-50" />
+                            </div>
+
+                            {/* Spools (Bobinas) */}
                             {[0, 1, 2, 3].map((i) => (
-                                <div key={i} className="relative w-14 h-32 flex flex-col items-center justify-center">
-                                    {/* Spool */}
+                                <div key={i} className="relative w-20 h-40 flex flex-col items-center justify-end z-20">
+                                    
+                                    {/* Bobina (Spool) */}
                                     <motion.div 
-                                        className="w-14 h-14 rounded-full border-4 border-gray-700 bg-gray-900 flex items-center justify-center relative"
-                                        animate={{ rotate: i === 1 ? 360 : 0 }}
-                                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                                        className="w-16 h-32 rounded-lg bg-[#222] border border-gray-700 relative overflow-hidden flex flex-col items-center justify-center shadow-lg"
+                                        style={{ transformStyle: 'preserve-3d' }}
+                                        animate={{ rotateX: i === 1 ? [0, 360] : 0 }}
+                                        transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                                     >
-                                        <div className={`absolute inset-1 rounded-full border-[6px] ${
-                                            i === 0 ? 'border-orange-500' : 
-                                            i === 1 ? 'border-[#00AE42]' : 
-                                            i === 2 ? 'border-blue-500' : 'border-white'
-                                        } opacity-80`} />
-                                        <div className="w-4 h-4 bg-gray-800 rounded-full" />
+                                        {/* Filamento enrollado */}
+                                        <div className={`absolute inset-x-1 inset-y-2 rounded-sm border-x-[3px] ${
+                                            i === 0 ? 'bg-orange-600 border-orange-500' : 
+                                            i === 1 ? 'bg-[#008a34] border-[#00AE42]' : 
+                                            i === 2 ? 'bg-blue-600 border-blue-500' : 
+                                            'bg-gray-400 border-gray-300'
+                                        }`}>
+                                            {/* Textura de líneas de filamento */}
+                                            <div className="w-full h-full opacity-40 bg-[repeating-linear-gradient(90deg,rgba(0,0,0,0.4)_0px,rgba(0,0,0,0.4)_1px,transparent_1px,transparent_2px)]" />
+                                            {/* Brillo cilíndrico */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+                                        </div>
+                                        
+                                        {/* Eje Central (Hub) */}
+                                        <div className="absolute w-8 h-8 bg-[#1a1a1a] rounded-full border-2 border-gray-600 flex items-center justify-center z-10 shadow-inner">
+                                            <div className="w-3 h-3 bg-gray-500 rounded-full border border-gray-400" />
+                                            {/* Rayos del eje */}
+                                            {[0, 45, 90, 135].map(deg => (
+                                                <div key={deg} className="absolute w-full h-0.5 bg-gray-700" style={{ transform: `rotate(${deg}deg)` }} />
+                                            ))}
+                                        </div>
+                                        
+                                        {/* Etiqueta RFID (Simulada) */}
+                                        <div className="absolute bottom-2 w-10 h-3 bg-white/80 rounded-[1px] opacity-80" />
                                     </motion.div>
+
+                                    {/* Base del Feeder (Motor) */}
+                                    <div className="absolute bottom-[-10px] w-18 h-10 bg-gray-800 rounded-t-lg border-t border-gray-600 flex justify-center pt-2 shadow-inner z-30">
+                                        {/* LED Indicador */}
+                                        <div className={`w-1.5 h-1.5 rounded-full ${i === 1 ? 'bg-white shadow-[0_0_8px_white] animate-pulse' : 'bg-gray-600'}`} />
+                                    </div>
                                     
-                                    {/* Filament Path */}
-                                    <div className={`w-1 h-full mt-[-2px] ${
-                                        i === 1 ? 'bg-[#00AE42] opacity-100' : 'bg-gray-800 opacity-30'
-                                    }`} />
-                                    
-                                    {/* Active Indicator */}
-                                    <div className={`w-1.5 h-1.5 rounded-full mt-2 ${
-                                        i === 1 ? 'bg-[#00AE42] shadow-[0_0_5px_#00AE42]' : 'bg-gray-800'
-                                    }`} />
+                                    {/* Filamento saliendo (Solo activo) */}
+                                    {i === 1 && (
+                                        <motion.div 
+                                            className="absolute bottom-[-80px] w-[2px] h-32 bg-[#00AE42] z-10"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1, y: [0, 8, 0] }}
+                                            transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                                        />
+                                    )}
                                 </div>
                             ))}
                         </div>
 
-                        {/* Feeding Tube Animation */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none">
-                            <motion.div 
-                                className="absolute left-[38%] top-[60%] w-1 h-20 bg-[#00AE42]"
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: [0, 40, 40, 0], opacity: [0, 1, 1, 0], top: ['60%', '60%', '100%', '100%'] }}
-                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                            />
+                        {/* Hub Trasero (Salida de 4 a 1) */}
+                        <div className="absolute bottom-[-20px] left-1/2 -translate-x-1/2 w-24 h-12 bg-[#222] rounded-b-2xl border-x border-b border-gray-700 z-0 flex justify-center items-end pb-2 shadow-2xl">
+                            <div className="w-4 h-4 bg-gray-800 rounded-full border border-gray-600 flex items-center justify-center">
+                                <div className="w-2 h-2 bg-black rounded-full" />
+                            </div>
                         </div>
                     </motion.div>
 
@@ -114,7 +140,7 @@ export default function RegistroPage() {
                             transition={{ delay: 0.2 }}
                             className="text-4xl font-black tracking-tight text-white"
                         >
-                            Creá el <span className="text-[#00AE42]">Futuro.</span>
+                            Impresión 3D <span className="text-[#00AE42]">Profesional.</span>
                         </motion.h2>
                         <motion.p 
                             initial={{ opacity: 0, y: 20 }}
@@ -122,7 +148,7 @@ export default function RegistroPage() {
                             transition={{ delay: 0.4 }}
                             className="text-gray-500 font-medium"
                         >
-                            Sumate a la comunidad de makers y profesionales que eligen calidad industrial.
+                            Registrate para acceder al catálogo completo de Grana3D. Insumos, repuestos y diseño a medida con envío a todo el país.
                         </motion.p>
                     </div>
                 </div>

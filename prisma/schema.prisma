@@ -16,6 +16,23 @@ model Usuario {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   pedidos   Pedido[]
+  direcciones Direccion[]
+}
+
+model Direccion {
+  id            String  @id @default(cuid())
+  nombre        String  @default("Casa") // Alias (e.g. Casa, Trabajo)
+  destinatario  String? // Nombre de quien recibe
+  calle         String
+  numero        String
+  piso          String?
+  depto         String?
+  ciudad        String
+  provincia     String
+  codigoPostal  String
+  telefono      String?
+  usuarioId     String
+  usuario       Usuario @relation(fields: [usuarioId], references: [id])
 }
 
 model Categoria {

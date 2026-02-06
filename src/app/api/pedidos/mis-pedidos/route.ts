@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { headers } from 'next/headers'
-import jwt from 'jsonwebtoken'
+import { verifyToken } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
     try {
@@ -10,22 +10,16 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
         }
 
-        const token = authHeader.split(' ')[1]
-        let usuarioId = null
-        try {
-            const decodificado = jwt.verify(token, process.env.JWT_SECRET || 'secret') as any
-            usuarioId = decodificado.id
-        } catch (e) {
+        const token = authHeader.replace('Bearer ', '')
+        const payload = await verifyToken(token)
+        
+        if (!payload) {
             return NextResponse.json({ error: 'Token inválido' }, { status: 401 })
         }
 
         const pedidos = await prisma.pedido.findMany({
-            where: { usuarioId },
-            orderBy: { createdAt: 'desc' },
-            include: {
-                // Si quisieras detalles adicionales, acá los agregás
-                // Por ahora el Pedido ya tiene items en JSON, que es suficiente
-            }
+            where: { usuarioId: String(payload.id) },
+            orderBy: { createdAt: 'desc' }
         })
 
         return NextResponse.json(pedidos)

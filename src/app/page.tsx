@@ -19,6 +19,10 @@ import HeroCarousel from '@/components/secciones/HeroCarousel'
 import ProductosCarousel from '@/components/secciones/ProductosCarousel'
 import { TipoSeccion } from '@prisma/client'
 
+// Forzar renderizado dinámico para que el modo mantenimiento se detecte al instante
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // Tipos
 type DataHome = {
    secciones: any[]

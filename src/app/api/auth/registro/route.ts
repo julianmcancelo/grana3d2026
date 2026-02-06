@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import { signToken } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
     try {
@@ -16,16 +16,31 @@ export async function POST(request: NextRequest) {
             data: { nombre, email, password: hashedPassword }
         })
 
-        const token = jwt.sign(
-            { id: usuario.id, email: usuario.email, rol: usuario.rol },
-            process.env.JWT_SECRET || 'secret',
-            { expiresIn: '7d' }
-        )
+        // Generar token consistente con el login
+        const token = await signToken({ 
+            id: usuario.id, 
+            email: usuario.email, 
+            rol: usuario.rol 
+        })
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             token,
             usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
         })
+
+        // Setear Cookie HttpOnly para seguridad automática
+        response.cookies.set({
+            name: 'token',
+            value: token,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 60 * 60 * 24 * 7, // 7 días
+            path: '/',
+        })
+
+        return response
+
     } catch (error) {
         console.error('Registro error:', error)
         return NextResponse.json({ error: 'Error al registrar' }, { status: 500 })

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import ProductoClient from './ProductoClient'
-import { Metadata } from 'next'
+import { Metadata, ResolvingMetadata } from 'next'
 import { getGlobalConfig } from '@/lib/config'
 import MantenimientoEpicardo from '@/components/MantenimientoEpicardo'
 
@@ -8,7 +8,7 @@ import MantenimientoEpicardo from '@/components/MantenimientoEpicardo'
 export const dynamic = 'force-dynamic'
 
 interface Props {
-    params: { slug: string }
+    params: Promise<{ slug: string }>
 }
 
 async function getProducto(slug: string) {
@@ -21,8 +21,14 @@ async function getProducto(slug: string) {
     return producto
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const producto = await getProducto(params.slug)
+export async function generateMetadata(
+    { params }: Props,
+    parent: ResolvingMetadata
+): Promise<Metadata> {
+    // wait for params
+    const { slug } = await params
+    
+    const producto = await getProducto(slug)
     if (!producto) return { title: 'Producto no encontrado' }
 
     return {
@@ -35,13 +41,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductoPage({ params }: Props) {
+    // wait for params (Next.js 15+ requirement for dynamic routes)
+    const { slug } = await params
+
     const config = await getGlobalConfig()
 
     if (config.modoProximamente) {
         return <MantenimientoEpicardo texto={config.textoProximamente} />
     }
 
-    const producto = await getProducto(params.slug)
+    const producto = await getProducto(slug)
 
     if (!producto) {
         return (
