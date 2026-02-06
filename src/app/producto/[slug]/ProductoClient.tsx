@@ -1,6 +1,7 @@
 "use client"
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ChevronRight, ShoppingCart, Heart, Share2, Truck, Shield, RotateCcw, Check, Minus, Plus, Package, Image as ImageIcon, Star, CreditCard, ArrowLeft, Box } from 'lucide-react'
 import Header from '@/components/Header'
@@ -80,7 +81,16 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                     </div>
                                 )}
                                 {producto.imagenes[imagenActiva] ? (
-                                    <img src={producto.imagenes[imagenActiva]} alt={producto.nombre} className="w-full h-full object-contain max-h-[500px] drop-shadow-2xl transition-transform hover:scale-105 duration-500" />
+                                    <div className="w-full h-full relative">
+                                        <Image 
+                                            src={producto.imagenes[imagenActiva]} 
+                                            alt={producto.nombre} 
+                                            fill
+                                            priority
+                                            className="object-contain p-4 drop-shadow-2xl transition-transform hover:scale-105 duration-500" 
+                                            sizes="(max-width: 768px) 100vw, 50vw"
+                                        />
+                                    </div>
                                 ) : (
                                     <ImageIcon className="w-24 h-24 text-gray-200 dark:text-gray-800" />
                                 )}
@@ -93,9 +103,15 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                     <button
                                         key={i}
                                         onClick={() => setImagenActiva(i)}
-                                        className={`w-24 h-24 rounded-xl overflow-hidden shrink-0 border-2 bg-white dark:bg-[#111] p-1 transition-all snap-start ${i === imagenActiva ? 'border-[#00AE42] ring-2 ring-[#00AE42]/20 scale-105' : 'border-transparent hover:border-gray-300 dark:hover:border-gray-700 opacity-70 hover:opacity-100'}`}
+                                        className={`w-24 h-24 rounded-xl overflow-hidden shrink-0 border-2 bg-white dark:bg-[#111] p-1 transition-all snap-start relative ${i === imagenActiva ? 'border-[#00AE42] ring-2 ring-[#00AE42]/20 scale-105' : 'border-transparent hover:border-gray-300 dark:hover:border-gray-700 opacity-70 hover:opacity-100'}`}
                                     >
-                                        <img src={img} alt="" className="w-full h-full object-cover rounded-lg" />
+                                        <Image 
+                                            src={img} 
+                                            alt="" 
+                                            fill
+                                            className="object-cover rounded-lg" 
+                                            sizes="100px"
+                                        />
                                     </button>
                                 ))}
                             </div>

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import api from '@/lib/api'
 import Swal from 'sweetalert2'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 interface Categoria {
     id: string
@@ -493,19 +494,12 @@ export default function CategoriasAdmin() {
                                         </div>
                                     </div>
 
-                                    {/* Imagen URL */}
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-medium text-gray-400 mb-2">
-                                            <ImageIcon className="w-4 h-4" /> Imagen (opcional, reemplaza el icono)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.imagen}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, imagen: e.target.value }))}
-                                            placeholder="https://..."
-                                            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-teal-500"
-                                        />
-                                    </div>
+                                    {/* Imagen Upload */}
+                                    <ImageUpload
+                                        value={formData.imagen}
+                                        onChange={(url) => setFormData(prev => ({ ...prev, imagen: url }))}
+                                        label="Imagen (opcional, reemplaza el icono)"
+                                    />
                                 </div>
 
                                 {/* Footer */}

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Save, Plus, Trash2, Edit2, Star, Check, X, Eye, EyeOff, Loader2 } from 'lucide-react'
 import api from '@/lib/api'
 import Swal from 'sweetalert2'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 interface Resena {
     id: string
@@ -26,6 +27,7 @@ export default function AdminResenas() {
         nombre: '',
         texto: '',
         rating: 5,
+        imagen: '',
         activa: true
     })
 
@@ -51,11 +53,12 @@ export default function AdminResenas() {
                 nombre: resena.nombre,
                 texto: resena.texto,
                 rating: resena.rating,
+                imagen: resena.imagen || '',
                 activa: resena.activa
             })
         } else {
             setEditando(null)
-            setForm({ nombre: '', texto: '', rating: 5, activa: true })
+            setForm({ nombre: '', texto: '', rating: 5, imagen: '', activa: true })
         }
         setModalOpen(true)
     }
@@ -165,9 +168,13 @@ export default function AdminResenas() {
                         <p className="text-gray-300 mb-4 line-clamp-3 italic">"{resena.texto}"</p>
 
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-500 font-bold text-xs">
-                                {resena.nombre.charAt(0)}
-                            </div>
+                            {resena.imagen ? (
+                                <img src={resena.imagen} alt={resena.nombre} className="w-8 h-8 rounded-full object-cover" />
+                            ) : (
+                                <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-500 font-bold text-xs">
+                                    {resena.nombre.charAt(0)}
+                                </div>
+                            )}
                             <div className="text-sm font-bold text-white">{resena.nombre}</div>
                         </div>
                     </motion.div>
@@ -210,6 +217,13 @@ export default function AdminResenas() {
                                         placeholder="Escribe la reseña..."
                                     />
                                 </div>
+
+                                <ImageUpload
+                                    value={form.imagen}
+                                    onChange={(url) => setForm({ ...form, imagen: url })}
+                                    label="Foto del Cliente (Opcional)"
+                                />
+
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-400 mb-2">Puntuación</label>

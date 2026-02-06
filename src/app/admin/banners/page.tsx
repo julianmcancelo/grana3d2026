@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import api from '@/lib/api'
 import Swal from 'sweetalert2'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 interface Banner {
     id: string
@@ -385,18 +386,12 @@ export default function BannersAdmin() {
 
                                     {/* Form */}
                                     <div className="p-6 space-y-5">
-                                        {/* Imagen URL */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-2">URL Imagen *</label>
-                                            <input
-                                                type="url"
-                                                required
-                                                value={form.imagen}
-                                                onChange={(e) => setForm({ ...form, imagen: e.target.value })}
-                                                placeholder="https://..."
-                                                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-teal-500"
-                                            />
-                                        </div>
+                                        {/* Imagen */}
+                                        <ImageUpload
+                                            value={form.imagen}
+                                            onChange={(url) => setForm({ ...form, imagen: url })}
+                                            label="Imagen del Banner"
+                                        />
 
                                         {/* Título y Subtítulo */}
                                         <div className="grid grid-cols-2 gap-4">

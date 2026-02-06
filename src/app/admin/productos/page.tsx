@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     Plus, Search, Edit2, Trash2, Package,
-    Eye, EyeOff, ArrowUpDown, X, Upload, Loader2
+    Eye, EyeOff, X, Loader2
 } from 'lucide-react'
 import api from '@/lib/api'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 interface Producto {
     id: string
@@ -374,16 +375,11 @@ export default function ProductosAdmin() {
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">URL Imagen</label>
-                                        <input
-                                            type="url"
-                                            value={form.imagen}
-                                            onChange={(e) => setForm({ ...form, imagen: e.target.value })}
-                                            placeholder="https://..."
-                                            className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
-                                        />
-                                    </div>
+                                    <ImageUpload
+                                        value={form.imagen}
+                                        onChange={(url) => setForm({ ...form, imagen: url })}
+                                        label="Imagen del Producto"
+                                    />
 
                                     <div className="flex gap-6 pt-2">
                                         <label className="flex items-center gap-2 cursor-pointer">

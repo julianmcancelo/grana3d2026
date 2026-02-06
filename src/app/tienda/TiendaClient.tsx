@@ -1,6 +1,7 @@
 "use client"
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion, Variants } from 'framer-motion'
 import {
     ChevronRight, ShoppingCart, Image as ImageIcon,
@@ -49,7 +50,13 @@ function ProductCard({ producto }: { producto: Producto }) {
                     </div>
                 )}
                 {producto.imagenes[0] ? (
-                    <img src={producto.imagenes[0]} alt={producto.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image 
+                        src={producto.imagenes[0]} 
+                        alt={producto.nombre} 
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+                    />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700">
                         <ImageIcon className="w-12 h-12" />
