@@ -17,10 +17,13 @@ interface Producto {
     precioOferta?: number
     stock: number
     imagen?: string
-    imagenes: string[] // Agregar soporte explícito
+    imagenes: string[]
     categoria?: { nombre: string }
     activo: boolean
     destacado: boolean
+    esPreventa: boolean
+    fechaLlegada?: string
+    tiempoProduccion?: string
 }
 
 interface Categoria {
@@ -47,7 +50,10 @@ export default function ProductosAdmin() {
         imagen: '',
         imagenes: [] as string[],
         activo: true,
-        destacado: false
+        destacado: false,
+        esPreventa: false,
+        fechaLlegada: '',
+        tiempoProduccion: ''
     })
 
     useEffect(() => {
@@ -82,7 +88,10 @@ export default function ProductosAdmin() {
                 imagen: producto.imagen || '',
                 imagenes: producto.imagenes || (producto.imagen ? [producto.imagen] : []),
                 activo: producto.activo,
-                destacado: producto.destacado
+                destacado: producto.destacado,
+                esPreventa: producto.esPreventa || false,
+                fechaLlegada: producto.fechaLlegada ? new Date(producto.fechaLlegada).toISOString().split('T')[0] : '',
+                tiempoProduccion: producto.tiempoProduccion || ''
             })
         } else {
             setEditando(null)
@@ -96,7 +105,10 @@ export default function ProductosAdmin() {
                 imagen: '',
                 imagenes: [],
                 activo: true,
-                destacado: false
+                destacado: false,
+                esPreventa: false,
+                fechaLlegada: '',
+                tiempoProduccion: ''
             })
         }
         setModalAbierto(true)
@@ -126,7 +138,10 @@ export default function ProductosAdmin() {
                 imagen: imagenPrincipal,
                 imagenes: imagenesFinales,
                 activo: form.activo,
-                destacado: form.destacado
+                destacado: form.destacado,
+                esPreventa: form.esPreventa,
+                fechaLlegada: form.fechaLlegada ? new Date(form.fechaLlegada) : null,
+                tiempoProduccion: form.tiempoProduccion || null
             }
 
             if (editando) {
@@ -378,6 +393,44 @@ export default function ProductosAdmin() {
                                                     <option key={cat.id} value={cat.id}>{cat.nombre}</option>
                                                 ))}
                                             </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-gray-800/50 p-4 rounded-xl border border-white/5 space-y-4">
+                                        <label className="flex items-center gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.esPreventa}
+                                                onChange={(e) => setForm({ ...form, esPreventa: e.target.checked })}
+                                                className="w-5 h-5 rounded border-white/10 bg-black accent-teal-500"
+                                            />
+                                            <div>
+                                                <span className="block text-sm font-bold text-white">Es Preventa</span>
+                                                <span className="text-xs text-gray-400">El producto aún no está en stock físico inmediato.</span>
+                                            </div>
+                                        </label>
+
+                                        {form.esPreventa && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-1">Fecha Estimada de Llegada</label>
+                                                <input
+                                                    type="date"
+                                                    value={form.fechaLlegada}
+                                                    onChange={(e) => setForm({ ...form, fechaLlegada: e.target.value })}
+                                                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-1">Tiempo de Producción / Entrega</label>
+                                            <input
+                                                type="text"
+                                                value={form.tiempoProduccion}
+                                                onChange={(e) => setForm({ ...form, tiempoProduccion: e.target.value })}
+                                                placeholder="Ej: 48-72 hs hábiles"
+                                                className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                                            />
                                         </div>
                                     </div>
 

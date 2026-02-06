@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { ChevronRight, ShoppingCart, Heart, Share2, Truck, Shield, RotateCcw, Check, Minus, Plus, Package, Image as ImageIcon, Star, CreditCard, ArrowLeft, Box } from 'lucide-react'
+import { ChevronRight, ShoppingCart, Heart, Share2, Truck, Shield, RotateCcw, Check, Minus, Plus, Package, Image as ImageIcon, Star, CreditCard, ArrowLeft, Box, Calendar, Clock } from 'lucide-react'
 import Header from '@/components/Header'
 import CarritoDrawer from '@/components/CarritoDrawer'
 import ModalUsuario from '@/components/ModalUsuario'
@@ -24,6 +24,9 @@ interface Producto {
     tamanos: string[]
     stock: number
     categoria: { nombre: string; slug: string }
+    esPreventa: boolean
+    fechaLlegada?: string
+    tiempoProduccion?: string
 }
 
 export default function ProductoClient({ producto }: { producto: Producto }) {
@@ -157,6 +160,25 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                         </div>
                                     )}
                                 </div>
+
+                                {producto.esPreventa && (
+                                    <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start gap-3">
+                                        <Calendar className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                                        <div>
+                                            <h4 className="font-bold text-blue-500 text-sm uppercase tracking-wide mb-1">Preventa Exclusiva</h4>
+                                            <p className="text-sm text-blue-200/80">
+                                                Reservá ahora. Fecha estimada de llegada: <strong className="text-white">{producto.fechaLlegada ? new Date(producto.fechaLlegada).toLocaleDateString('es-AR') : 'Próximamente'}</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {producto.tiempoProduccion && (
+                                    <div className="mb-6 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-[#161616] px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 w-fit">
+                                        <Clock className="w-4 h-4 text-[#00AE42]" />
+                                        <span>Tiempo de producción: <strong className="text-gray-900 dark:text-white">{producto.tiempoProduccion}</strong></span>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-8 mb-8 relative z-10">
@@ -229,9 +251,11 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                             <div className="flex gap-3 mb-8 relative z-10">
                                 <button
                                     onClick={handleAgregar}
-                                    className="flex-1 py-4 bg-[#00AE42] hover:bg-[#008a34] text-white font-bold rounded-xl shadow-lg shadow-[#00AE42]/20 hover:shadow-[#00AE42]/40 transition-all hover:-translate-y-1 flex items-center justify-center gap-2 text-sm uppercase tracking-wide"
+                                    className={`flex-1 py-4 text-white font-bold rounded-xl shadow-lg transition-all hover:-translate-y-1 flex items-center justify-center gap-2 text-sm uppercase tracking-wide ${producto.esPreventa 
+                                        ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20 hover:shadow-blue-500/40' 
+                                        : 'bg-[#00AE42] hover:bg-[#008a34] shadow-[#00AE42]/20 hover:shadow-[#00AE42]/40'}`}
                                 >
-                                    <ShoppingCart className="w-5 h-5" /> Agregar al Carrito
+                                    <ShoppingCart className="w-5 h-5" /> {producto.esPreventa ? 'Reservar Preventa' : 'Agregar al Carrito'}
                                 </button>
                                 <button className="w-14 h-14 rounded-xl border-2 border-gray-200 dark:border-gray-800 flex items-center justify-center hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors text-gray-400 hover:text-red-500 group">
                                     <Heart className="w-6 h-6 group-hover:scale-110 transition-transform" />
@@ -265,9 +289,11 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                     </div>
                     <button
                         onClick={handleAgregar}
-                        className="flex-[1.5] py-3.5 bg-[#00AE42] text-white font-bold rounded-xl shadow-lg shadow-[#00AE42]/20 flex items-center justify-center gap-2 uppercase text-sm tracking-wide active:scale-95 transition-transform"
+                        className={`flex-[1.5] py-3.5 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 uppercase text-sm tracking-wide active:scale-95 transition-transform ${producto.esPreventa 
+                            ? 'bg-blue-600 shadow-blue-500/20' 
+                            : 'bg-[#00AE42] shadow-[#00AE42]/20'}`}
                     >
-                        Agregar
+                        {producto.esPreventa ? 'Reservar' : 'Agregar'}
                     </button>
                 </div>
             </div>
