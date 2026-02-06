@@ -11,29 +11,52 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://grana3d.com.ar'),
   title: {
     template: '%s | Grana3D',
-    default: 'Grana3D - Soluciones de Impresión 3D y Diseño Industrial',
+    default: 'Grana3D - Impresión 3D, Insumos y Diseño Industrial',
   },
-  description: "Servicios de impresión 3D, prototipado rápido, diseño CAD y venta de insumos. Calidad industrial para tus proyectos.",
-  keywords: ["impresión 3d", "pla", "petg", "diseño 3d", "argentina", "grana3d", "prototipado"],
+  description: "Tu tienda experta en impresión 3D en Argentina. Venta de impresoras, filamentos, repuestos y servicios de diseño y prototipado. Envíos a todo el país.",
+  keywords: ["impresión 3d argentina", "filamento pla", "bambu lab", "creality", "diseño industrial", "prototipado rápido", "servicio impresión 3d", "grana3d"],
   authors: [{ name: "Grana3D" }],
   creator: "Grana3D",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
     type: 'website',
     locale: 'es_AR',
     url: 'https://grana3d.com.ar',
     siteName: 'Grana3D',
-    title: 'Grana3D - Soluciones de Impresión 3D',
-    description: 'Transformamos tus ideas en objetos reales. Servicios de impresión 3D y diseño.',
+    title: 'Grana3D - Todo para tu Impresión 3D',
+    description: 'Encontrá las mejores impresoras, insumos y servicios de diseño en un solo lugar. Calidad garantizada.',
     images: [
       {
-        url: '/og-image.jpg', // Asegurate de tener esta imagen o cambiarla
+        url: '/og-image.jpg', // TODO: Crear imagen 1200x630 en public/
         width: 1200,
         height: 630,
-        alt: 'Grana3D Preview',
+        alt: 'Grana3D Store',
       },
     ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Grana3D - Impresión 3D Profesional',
+    description: 'Llevá tus ideas a la realidad con Grana3D.',
+    images: ['/og-image.jpg'],
+  },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png', // TODO: Crear 180x180
   },
 };
 
