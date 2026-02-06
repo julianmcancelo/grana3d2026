@@ -16,6 +16,7 @@ interface Producto {
     precioOferta?: number
     stock: number
     imagen?: string
+    imagenes: string[] // Agregar soporte explícito
     categoria?: { nombre: string }
     activo: boolean
     destacado: boolean
@@ -43,6 +44,7 @@ export default function ProductosAdmin() {
         stock: '',
         categoriaId: '',
         imagen: '',
+        imagenes: [] as string[],
         activo: true,
         destacado: false
     })
@@ -77,6 +79,7 @@ export default function ProductosAdmin() {
                 stock: producto.stock.toString(),
                 categoriaId: '',
                 imagen: producto.imagen || '',
+                imagenes: producto.imagenes || (producto.imagen ? [producto.imagen] : []),
                 activo: producto.activo,
                 destacado: producto.destacado
             })
@@ -90,6 +93,7 @@ export default function ProductosAdmin() {
                 stock: '',
                 categoriaId: categorias[0]?.id || '',
                 imagen: '',
+                imagenes: [],
                 activo: true,
                 destacado: false
             })
@@ -107,6 +111,10 @@ export default function ProductosAdmin() {
         setGuardando(true)
 
         try {
+            // Asegurar que imagen principal es la primera del array
+            const imagenesFinales = form.imagenes.length > 0 ? form.imagenes : (form.imagen ? [form.imagen] : [])
+            const imagenPrincipal = imagenesFinales.length > 0 ? imagenesFinales[0] : null
+
             const datos = {
                 nombre: form.nombre,
                 descripcion: form.descripcion || 'Producto sin descripción',
@@ -114,7 +122,8 @@ export default function ProductosAdmin() {
                 precioOferta: form.precioOferta ? parseFloat(form.precioOferta) : null,
                 stock: parseInt(form.stock) || 0,
                 categoriaId: form.categoriaId,
-                imagen: form.imagen || null,
+                imagen: imagenPrincipal,
+                imagenes: imagenesFinales,
                 activo: form.activo,
                 destacado: form.destacado
             }
@@ -376,9 +385,14 @@ export default function ProductosAdmin() {
                                     </div>
 
                                     <ImageUpload
-                                        value={form.imagen}
-                                        onChange={(url) => setForm({ ...form, imagen: url })}
-                                        label="Imagen del Producto"
+                                        value={form.imagenes}
+                                        onChange={(urls) => setForm({ 
+                                            ...form, 
+                                            imagenes: Array.isArray(urls) ? urls : [urls],
+                                            imagen: Array.isArray(urls) && urls.length > 0 ? urls[0] : (typeof urls === 'string' ? urls : '')
+                                        })}
+                                        label="Galería de Imágenes (La primera es la principal)"
+                                        multiple={true}
                                     />
 
                                     <div className="flex gap-6 pt-2">
