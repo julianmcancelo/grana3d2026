@@ -239,7 +239,7 @@ export default function NovedadesAdmin() {
 
                                     <ImageUpload
                                         value={form.imagen}
-                                        onChange={(url) => setForm({ ...form, imagen: url })}
+                                        onChange={(url) => setForm({ ...form, imagen: Array.isArray(url) ? url[0] : url })}
                                         label="Imagen (opcional)"
                                     />
 

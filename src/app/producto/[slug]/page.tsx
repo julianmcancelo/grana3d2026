@@ -71,6 +71,8 @@ export default async function ProductoPage({ params }: Props) {
         colores: (producto.variantes as any)?.colores || [],
         tamanos: (producto.variantes as any)?.tamanos || [],
         descripcionCorta: (producto.variantes as any)?.descripcionCorta || '',
+        fechaLlegada: producto.fechaLlegada?.toISOString(),
+        tiempoProduccion: producto.tiempoProduccion || undefined,
     }
 
     return <ProductoClient producto={productoCliente} />

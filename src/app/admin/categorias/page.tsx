@@ -497,7 +497,7 @@ export default function CategoriasAdmin() {
                                     {/* Imagen Upload */}
                                     <ImageUpload
                                         value={formData.imagen}
-                                        onChange={(url) => setFormData(prev => ({ ...prev, imagen: url }))}
+                                        onChange={(url) => setFormData(prev => ({ ...prev, imagen: Array.isArray(url) ? url[0] : url }))}
                                         label="Imagen (opcional, reemplaza el icono)"
                                     />
                                 </div>

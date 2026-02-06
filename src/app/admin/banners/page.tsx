@@ -389,7 +389,7 @@ export default function BannersAdmin() {
                                         {/* Imagen */}
                                         <ImageUpload
                                             value={form.imagen}
-                                            onChange={(url) => setForm({ ...form, imagen: url })}
+                                            onChange={(url) => setForm({ ...form, imagen: Array.isArray(url) ? url[0] : url })}
                                             label="Imagen del Banner"
                                         />
 
