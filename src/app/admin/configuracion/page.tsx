@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Settings, Save, Loader2, Store, AlertTriangle, Check, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Settings, Save, Loader2, Store, AlertTriangle, Check, Mail, Send } from 'lucide-react'
 import api from '@/lib/api'
 
 interface Config {
@@ -25,6 +25,8 @@ export default function ConfiguracionAdmin() {
     const [loading, setLoading] = useState(true)
     const [guardando, setGuardando] = useState(false)
     const [guardado, setGuardado] = useState(false)
+    const [testEmail, setTestEmail] = useState('')
+    const [sendingTest, setSendingTest] = useState<string | null>(null)
 
     useEffect(() => {
         cargarConfig()
@@ -35,8 +37,8 @@ export default function ConfiguracionAdmin() {
             const { data } = await api.get('/admin/configuracion')
             if (data.config) {
                 // Ensure boolean conversion if necessary
-                const modo = typeof data.config.modoProximamente === 'string' 
-                    ? data.config.modoProximamente === 'true' 
+                const modo = typeof data.config.modoProximamente === 'string'
+                    ? data.config.modoProximamente === 'true'
                     : data.config.modoProximamente
 
                 setConfig(prev => ({ ...prev, ...data.config, modoProximamente: modo }))
@@ -59,6 +61,20 @@ export default function ConfiguracionAdmin() {
             console.error('Error guardando config:', error)
         } finally {
             setGuardando(false)
+        }
+    }
+
+    const handleTestEmail = async (type: string) => {
+        if (!testEmail) return
+        setSendingTest(type)
+        try {
+            await api.get(`/test-email?to=${testEmail}&type=${type}`)
+            alert('Correo de prueba enviado con éxito')
+        } catch (error) {
+            console.error('Error enviando correo de prueba:', error)
+            alert('Error al enviar el correo de prueba')
+        } finally {
+            setSendingTest(null)
         }
     }
 
@@ -117,11 +133,11 @@ export default function ConfiguracionAdmin() {
                                 <div className="text-sm text-gray-500">Si está activo, los clientes verán la pantalla de espera.</div>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
-                                <input 
-                                    type="checkbox" 
-                                    checked={config.modoProximamente} 
+                                <input
+                                    type="checkbox"
+                                    checked={config.modoProximamente}
                                     onChange={(e) => setConfig({ ...config, modoProximamente: e.target.checked })}
-                                    className="sr-only peer" 
+                                    className="sr-only peer"
                                 />
                                 <div className="w-14 h-7 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#00AE42] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#00AE42]"></div>
                             </label>
@@ -200,6 +216,72 @@ export default function ConfiguracionAdmin() {
                                 placeholder="@usuario"
                                 className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
                             />
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* TEST EMAIL CARD */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="bg-[#111] border border-gray-800 rounded-xl overflow-hidden"
+                >
+                    <div className="p-6 border-b border-gray-800 flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/10 rounded-lg">
+                            <Mail className="w-6 h-6 text-blue-500" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-white">Prueba de Correos</h2>
+                            <p className="text-sm text-gray-500">Verifica que los correos lleguen correctamente.</p>
+                        </div>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Email de Pruebas</label>
+                            <input
+                                type="email"
+                                value={testEmail}
+                                onChange={(e) => setTestEmail(e.target.value)}
+                                placeholder="tu@email.com"
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-blue-500 transition-colors"
+                            />
+                        </div>
+
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                onClick={() => handleTestEmail('welcome')}
+                                disabled={!testEmail || !!sendingTest}
+                                className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#222] border border-gray-800 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50"
+                            >
+                                {sendingTest === 'welcome' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-blue-500" />}
+                                Bienvenida
+                            </button>
+                            <button
+                                onClick={() => handleTestEmail('order_transfer')}
+                                disabled={!testEmail || !!sendingTest}
+                                className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#222] border border-gray-800 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50"
+                            >
+                                {sendingTest === 'order_transfer' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-green-500" />}
+                                Pedido (Transferencia)
+                            </button>
+                            <button
+                                onClick={() => handleTestEmail('order_cash')}
+                                disabled={!testEmail || !!sendingTest}
+                                className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#222] border border-gray-800 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50"
+                            >
+                                {sendingTest === 'order_cash' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-orange-500" />}
+                                Pedido (Efectivo)
+                            </button>
+                            <button
+                                onClick={() => handleTestEmail('order_mp')}
+                                disabled={!testEmail || !!sendingTest}
+                                className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#222] border border-gray-800 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50"
+                            >
+                                {sendingTest === 'order_mp' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-sky-500" />}
+                                Pedido (MercadoPago)
+                            </button>
                         </div>
                     </div>
                 </motion.div>
