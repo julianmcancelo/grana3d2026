@@ -10,10 +10,14 @@ export async function POST(request: NextRequest) {
         const existe = await prisma.usuario.findUnique({ where: { email } })
         if (existe) return NextResponse.json({ error: 'El email ya está registrado' }, { status: 400 })
 
+        // Check if it's the first user
+        const userCount = await prisma.usuario.count()
+        const rol = userCount === 0 ? 'ADMIN' : 'CLIENTE'
+
         const hashedPassword = await bcrypt.hash(password, 10)
 
         const usuario = await prisma.usuario.create({
-            data: { nombre, email, password: hashedPassword }
+            data: { nombre, email, password: hashedPassword, rol }
         })
 
         // Generar token consistente con el login
