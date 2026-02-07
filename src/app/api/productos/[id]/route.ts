@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { verifyToken } from '@/lib/auth'
+
+async function requireAdmin(request: NextRequest) {
+    const token = request.cookies.get('token')?.value || request.headers.get('Authorization')?.replace('Bearer ', '')
+    if (!token) return null
+    const payload = await verifyToken(token)
+    if (!payload || payload.rol !== 'ADMIN') return null
+    return payload
+}
 
 // GET - Obtener un producto
 export async function GET(
@@ -31,6 +40,9 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const admin = await requireAdmin(request)
+        if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
         const { id } = await params
         const body = await request.json()
 
@@ -54,7 +66,13 @@ export async function PUT(
             if (!isNaN(s)) dataToUpdate.stock = s
         }
 
-        if (body.categoriaId !== undefined) dataToUpdate.categoriaId = body.categoriaId || null
+        if (body.categoriaId !== undefined) {
+            if (body.categoriaId) {
+                dataToUpdate.categoria = { connect: { id: body.categoriaId } }
+            } else {
+                dataToUpdate.categoria = { disconnect: true }
+            }
+        }
         if (body.imagen !== undefined) dataToUpdate.imagen = body.imagen
         if (body.imagenes !== undefined) dataToUpdate.imagenes = body.imagenes // Add support for images array
         if (body.activo !== undefined) dataToUpdate.activo = body.activo
@@ -84,6 +102,9 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const admin = await requireAdmin(request)
+        if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
         const { id } = await params
 
         await prisma.producto.delete({

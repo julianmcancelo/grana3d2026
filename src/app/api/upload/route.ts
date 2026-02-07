@@ -8,6 +8,7 @@ export const runtime = 'nodejs'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const UPLOAD_DIR = process.env.UPLOAD_DIR
 
 export async function POST(request: NextRequest) {
     try {
@@ -47,11 +48,12 @@ export async function POST(request: NextRequest) {
         const ext = file.type.split('/')[1] || 'jpg'
         const filename = `${crypto.randomUUID()}.${ext}`
 
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+        const uploadDir = UPLOAD_DIR || path.join(process.cwd(), 'public', 'uploads')
         await fs.mkdir(uploadDir, { recursive: true })
         await fs.writeFile(path.join(uploadDir, filename), buffer)
 
-        return NextResponse.json({ url: `/uploads/${filename}` })
+        const publicBase = UPLOAD_DIR ? process.env.UPLOAD_PUBLIC_BASE || '/uploads' : '/uploads'
+        return NextResponse.json({ url: `${publicBase}/${filename}` })
 
     } catch (error) {
         console.error('Error subiendo imagen:', error)
