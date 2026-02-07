@@ -81,7 +81,7 @@ export default function CotizadorAdmin() {
         // --- CONFIGURACIÓN ---
         const colorPrimario = [20, 184, 166] as [number, number, number] // Teal 500
         const colorSecundario = [31, 41, 55] as [number, number, number] // Gray 800
-        const logoUrl = 'https://res.cloudinary.com/dcqglfpxo/image/upload/v1/grana3d/logo-placeholder.png' // TODO: Reemplazar por logo real si existe
+        const logoUrl = '/uploads/logo.png' // TODO: Reemplazar por logo real si existe
 
         // --- HEADER ---
         // Fondo Header
