@@ -31,32 +31,10 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  openGraph: {
-    type: 'website',
-    locale: 'es_AR',
-    url: 'https://grana3d.com.ar',
-    siteName: 'Grana3D',
-    title: 'Grana3D - Todo para tu Impresión 3D',
-    description: 'Encontrá las mejores impresoras, insumos y servicios de diseño en un solo lugar. Calidad garantizada.',
-    images: [
-      {
-        url: '/og-image.jpg', // TODO: Crear imagen 1200x630 en public/
-        width: 1200,
-        height: 630,
-        alt: 'Grana3D Store',
-      },
-    ],
-  },
   twitter: {
     card: 'summary_large_image',
     title: 'Grana3D - Impresión 3D Profesional',
     description: 'Llevá tus ideas a la realidad con Grana3D.',
-    images: ['/og-image.jpg'],
-  },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png', // TODO: Crear 180x180
   },
 };
 
