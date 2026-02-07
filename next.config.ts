@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'standalone', // Necesario para Docker optimizado
   reactCompiler: true,
   images: {
     remotePatterns: [
