@@ -38,7 +38,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
-        const { nombre, descripcion, precio, precioOferta, stock, categoriaId, imagen, activo, destacado } = body
+        const {
+            nombre, descripcion, precio, precioOferta, stock,
+            categoriaId, imagen, imagenes, activo, destacado,
+            esPreventa, fechaLlegada, tiempoProduccion
+        } = body
 
         if (!nombre || !precio) {
             return NextResponse.json({ error: 'Nombre y precio son requeridos' }, { status: 400 })
@@ -51,13 +55,17 @@ export async function POST(request: NextRequest) {
                 nombre,
                 slug,
                 descripcion: descripcion || '',
-                precio: parseFloat(precio),
+                precio: parseFloat(precio || '0'),
                 precioOferta: precioOferta ? parseFloat(precioOferta) : null,
                 stock: parseInt(stock) || 0,
                 categoriaId: categoriaId || null,
                 imagen: imagen || null,
+                imagenes: Array.isArray(imagenes) ? imagenes : [],
                 activo: activo !== false,
                 destacado: destacado === true,
+                esPreventa: esPreventa === true,
+                fechaLlegada: fechaLlegada ? new Date(fechaLlegada) : null,
+                tiempoProduccion: tiempoProduccion || null,
                 updatedAt: new Date()
             }
         })

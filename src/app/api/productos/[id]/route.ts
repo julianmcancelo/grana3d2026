@@ -10,7 +10,7 @@ export async function GET(
         const { id } = await params
 
         const producto = await prisma.producto.findUnique({
-            where: { id },
+            where: { id: id },
             include: { categoria: true }
         })
 
@@ -39,16 +39,35 @@ export async function PUT(
 
         if (body.nombre !== undefined) dataToUpdate.nombre = body.nombre
         if (body.descripcion !== undefined) dataToUpdate.descripcion = body.descripcion
-        if (body.precio !== undefined) dataToUpdate.precio = parseFloat(body.precio)
-        if (body.precioOferta !== undefined) dataToUpdate.precioOferta = body.precioOferta ? parseFloat(body.precioOferta) : null
-        if (body.stock !== undefined) dataToUpdate.stock = parseInt(body.stock)
+
+        // Validate numbers
+        if (body.precio !== undefined) {
+            const p = parseFloat(body.precio)
+            if (!isNaN(p)) dataToUpdate.precio = p
+        }
+        if (body.precioOferta !== undefined) {
+            const po = body.precioOferta ? parseFloat(body.precioOferta) : null
+            dataToUpdate.precioOferta = (po !== null && !isNaN(po)) ? po : null
+        }
+        if (body.stock !== undefined) {
+            const s = parseInt(body.stock)
+            if (!isNaN(s)) dataToUpdate.stock = s
+        }
+
         if (body.categoriaId !== undefined) dataToUpdate.categoriaId = body.categoriaId || null
         if (body.imagen !== undefined) dataToUpdate.imagen = body.imagen
+        if (body.imagenes !== undefined) dataToUpdate.imagenes = body.imagenes // Add support for images array
         if (body.activo !== undefined) dataToUpdate.activo = body.activo
         if (body.destacado !== undefined) dataToUpdate.destacado = body.destacado
+        if (body.esPreventa !== undefined) dataToUpdate.esPreventa = body.esPreventa
+        // Handle Dates safely
+        if (body.fechaLlegada !== undefined) {
+            dataToUpdate.fechaLlegada = body.fechaLlegada ? new Date(body.fechaLlegada) : null
+        }
+        if (body.tiempoProduccion !== undefined) dataToUpdate.tiempoProduccion = body.tiempoProduccion
 
         const producto = await prisma.producto.update({
-            where: { id },
+            where: { id: id },
             data: dataToUpdate
         })
 
