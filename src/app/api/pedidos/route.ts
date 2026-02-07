@@ -8,7 +8,7 @@ import { crearPreferencia } from '@/lib/mercadopago'
 interface ItemEntrada {
     id: string
     cantidad: number
-    variante?: any 
+    variante?: any
 }
 
 // Datos del cliente necesarios para el envío y facturación
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
                     } else if (cupon.tipo === 'FIJO') {
                         descuentoTotal = cupon.valor
                     }
-                    
+
                     await prisma.cupon.update({
                         where: { id: cupon.id },
                         data: { usosActuales: { increment: 1 } }
@@ -176,6 +176,20 @@ export async function POST(request: NextRequest) {
             } catch (error) {
                 console.error('Error al generar URL de pago:', error)
             }
+        }
+
+        // 6. Enviar Correo de Confirmación
+        try {
+            const { sendEmail } = await import('@/lib/email')
+            const { getOrderConfirmationTemplate } = await import('@/lib/email-templates')
+
+            await sendEmail({
+                to: cliente.email,
+                subject: `Confirmación de Pedido #${pedido.id.slice(-6).toUpperCase()} - Grana 3D`,
+                html: getOrderConfirmationTemplate(pedido, itemsProcesados, metodoPago)
+            })
+        } catch (emailError) {
+            console.error('Error enviando correo de pedido:', emailError)
         }
 
         return NextResponse.json({

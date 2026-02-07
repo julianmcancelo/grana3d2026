@@ -21,11 +21,26 @@ export async function POST(request: NextRequest) {
         })
 
         // Generar token consistente con el login
-        const token = await signToken({ 
-            id: usuario.id, 
-            email: usuario.email, 
-            rol: usuario.rol 
+        const token = await signToken({
+            id: usuario.id,
+            email: usuario.email,
+            rol: usuario.rol
         })
+
+        // Enviar correo de bienvenida
+        try {
+            const { sendEmail } = await import('@/lib/email')
+            const { getWelcomeEmailTemplate } = await import('@/lib/email-templates')
+
+            await sendEmail({
+                to: usuario.email,
+                subject: '¡Bienvenido a Grana 3D!',
+                html: getWelcomeEmailTemplate(usuario.nombre)
+            })
+        } catch (emailError) {
+            console.error('Error enviando correo de bienvenida:', emailError)
+            // No fallamos el registro si falla el correo, solo lo logueamos
+        }
 
         const response = NextResponse.json({
             token,
