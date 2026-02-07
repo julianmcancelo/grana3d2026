@@ -84,7 +84,7 @@ export default function AdminDashboard() {
                     <p className="text-gray-500 text-sm">Visión general del rendimiento.</p>
                 </div>
                 <div className="flex gap-3">
-                    <Link href="/admin/productos/nuevo" className="px-4 py-2.5 bg-[#00AE42] hover:bg-[#008a34] text-white rounded-lg text-sm font-bold transition-all shadow-lg hover:shadow-[#00AE42]/20 flex items-center gap-2">
+                    <Link href="/admin/productos?nuevo=true" className="px-4 py-2.5 bg-[#00AE42] hover:bg-[#008a34] text-white rounded-lg text-sm font-bold transition-all shadow-lg hover:shadow-[#00AE42]/20 flex items-center gap-2">
                         <Plus className="w-4 h-4" /> Nuevo Producto
                     </Link>
                 </div>
@@ -142,11 +142,10 @@ export default function AdminDashboard() {
                                         </div>
                                         <div className="text-right">
                                             <div className="font-bold text-white text-sm">${pedido.total?.toLocaleString('es-AR')}</div>
-                                            <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1 uppercase tracking-wide ${
-                                                pedido.estado === 'PENDIENTE' ? 'bg-orange-500/10 text-orange-500' :
-                                                pedido.estado === 'ENTREGADO' ? 'bg-[#00AE42]/10 text-[#00AE42]' :
-                                                'bg-blue-500/10 text-blue-500'
-                                            }`}>
+                                            <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1 uppercase tracking-wide ${pedido.estado === 'PENDIENTE' ? 'bg-orange-500/10 text-orange-500' :
+                                                    pedido.estado === 'ENTREGADO' ? 'bg-[#00AE42]/10 text-[#00AE42]' :
+                                                        'bg-blue-500/10 text-blue-500'
+                                                }`}>
                                                 {pedido.estado}
                                             </div>
                                         </div>

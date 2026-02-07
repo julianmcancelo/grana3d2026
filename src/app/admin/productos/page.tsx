@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     Plus, Search, Edit2, Trash2, Package,
@@ -32,6 +33,8 @@ interface Categoria {
 }
 
 export default function ProductosAdmin() {
+    const searchParams = useSearchParams()
+    const router = useRouter()
     const [productos, setProductos] = useState<Producto[]>([])
     const [categorias, setCategorias] = useState<Categoria[]>([])
     const [loading, setLoading] = useState(true)
@@ -58,6 +61,11 @@ export default function ProductosAdmin() {
 
     useEffect(() => {
         cargarDatos()
+        if (searchParams.get('nuevo') === 'true') {
+            abrirModal()
+            // Limpiar URL
+            router.replace('/admin/productos', { scroll: false })
+        }
     }, [])
 
     const cargarDatos = async () => {
@@ -269,8 +277,8 @@ export default function ProductosAdmin() {
                                     <button
                                         onClick={() => toggleActivo(producto)}
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${producto.activo
-                                                ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20'
-                                                : 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
+                                            ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20'
+                                            : 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
                                             }`}
                                     >
                                         {producto.activo ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
@@ -436,8 +444,8 @@ export default function ProductosAdmin() {
 
                                     <ImageUpload
                                         value={form.imagenes}
-                                        onChange={(urls) => setForm({ 
-                                            ...form, 
+                                        onChange={(urls) => setForm({
+                                            ...form,
                                             imagenes: Array.isArray(urls) ? urls : [urls],
                                             imagen: Array.isArray(urls) && urls.length > 0 ? urls[0] : (typeof urls === 'string' ? urls : '')
                                         })}
