@@ -69,9 +69,8 @@ export async function PUT(
         if (body.categoriaId !== undefined) {
             if (body.categoriaId) {
                 dataToUpdate.categoria = { connect: { id: body.categoriaId } }
-            } else {
-                dataToUpdate.categoria = { disconnect: true }
             }
+            // No podemos desconectar categoría porque es obligatoria en el schema
         }
         if (body.imagen !== undefined) dataToUpdate.imagen = body.imagen
         if (body.imagenes !== undefined) dataToUpdate.imagenes = body.imagenes // Add support for images array
@@ -84,6 +83,8 @@ export async function PUT(
         }
         if (body.tiempoProduccion !== undefined) dataToUpdate.tiempoProduccion = body.tiempoProduccion
 
+        console.log('Update data:', JSON.stringify(dataToUpdate, null, 2))
+
         const producto = await prisma.producto.update({
             where: { id: id },
             data: dataToUpdate
@@ -92,6 +93,11 @@ export async function PUT(
         return NextResponse.json({ producto })
     } catch (error) {
         console.error('Error actualizando producto:', error)
+        // Log more details if it's a Prisma error
+        if (error instanceof Error) {
+            console.error('Error message:', error.message)
+            console.error('Error stack:', error.stack)
+        }
         return NextResponse.json({ error: 'Error al actualizar producto' }, { status: 500 })
     }
 }
