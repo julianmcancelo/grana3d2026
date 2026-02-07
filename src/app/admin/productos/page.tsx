@@ -1,14 +1,19 @@
 "use client"
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import {
     Plus, Search, Edit2, Trash2, Package,
     Eye, EyeOff, X, Loader2
 } from 'lucide-react'
 import api from '@/lib/api'
 import ImageUpload from '@/components/admin/ImageUpload'
-import MarkdownEditor from '@/components/admin/MarkdownEditor'
+
+const MarkdownEditor = dynamic(() => import('@/components/admin/MarkdownEditor'), {
+    loading: () => <div className="h-[300px] w-full bg-white/5 rounded-xl animate-pulse" />,
+    ssr: false
+})
 
 interface Producto {
     id: string
@@ -32,7 +37,7 @@ interface Categoria {
     nombre: string
 }
 
-export default function ProductosAdmin() {
+function ProductosContent() {
     const searchParams = useSearchParams()
     const router = useRouter()
     const [productos, setProductos] = useState<Producto[]>([])
@@ -498,5 +503,17 @@ export default function ProductosAdmin() {
                 )}
             </AnimatePresence>
         </div>
+    )
+}
+
+export default function ProductosAdmin() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center h-screen">
+                <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
+            </div>
+        }>
+            <ProductosContent />
+        </Suspense>
     )
 }

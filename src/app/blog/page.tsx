@@ -3,8 +3,12 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Instagram, MessageCircle, Loader2, Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Sphere, MeshDistortMaterial } from '@react-three/drei'
+import dynamic from 'next/dynamic'
+
+const ThreeBackground = dynamic(() => import('@/components/three/ThreeBackground'), {
+   ssr: false,
+   loading: () => <div className="w-full h-full bg-transparent" />
+})
 import { useTheme } from 'next-themes'
 import api from '@/lib/api'
 
@@ -17,23 +21,7 @@ import SeccionResenas from '@/components/secciones/SeccionResenas'
 import Newsletter from '@/components/secciones/Newsletter'
 import BannerPromo from '@/components/secciones/BannerPromo'
 
-function AnimatedSphere() {
-   const { theme } = useTheme()
-   const isDark = theme === 'dark'
-
-   return (
-      <Sphere visible args={[1, 100, 200]} scale={2.4}>
-         <MeshDistortMaterial
-            color={isDark ? "#14B8A6" : "#0D9488"}
-            attach="material"
-            distort={0.5}
-            speed={1.5}
-            roughness={0.2}
-            metalness={0.8}
-         />
-      </Sphere>
-   )
-}
+// 3Dlogic moved to ThreeBackground.tsx component
 
 interface Seccion {
    id: string
@@ -82,12 +70,7 @@ export default function LandingPage() {
       return (
          <div className="bg-gray-50 dark:bg-black min-h-screen text-gray-900 dark:text-white overflow-hidden font-sans selection:bg-teal-500 selection:text-white">
             <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
-               <Canvas>
-                  <ambientLight intensity={0.5} />
-                  <directionalLight position={[10, 10, 5]} intensity={1} />
-                  <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
-                  <AnimatedSphere />
-               </Canvas>
+               <ThreeBackground />
             </div>
 
             <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
@@ -267,12 +250,7 @@ function HeroDefault() {
    return (
       <section className="relative h-screen flex items-center justify-center overflow-hidden pt-20">
          <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
-            <Canvas>
-               <ambientLight intensity={0.5} />
-               <directionalLight position={[10, 10, 5]} intensity={1} />
-               <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
-               <AnimatedSphere />
-            </Canvas>
+            <ThreeBackground />
          </div>
 
          <div className="relative z-10 text-center px-4 max-w-5xl">

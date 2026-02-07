@@ -3,8 +3,12 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import dynamic from 'next/dynamic'
+
+const MarkdownView = dynamic(() => import('@/components/MarkdownView'), {
+    loading: () => <div className="h-20 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />,
+    ssr: false
+})
 import { ChevronRight, ShoppingCart, Heart, Share2, Truck, Shield, RotateCcw, Check, Minus, Plus, Package, Image as ImageIcon, Star, CreditCard, ArrowLeft, Box, Calendar, Clock } from 'lucide-react'
 import Header from '@/components/Header'
 import CarritoDrawer from '@/components/CarritoDrawer'
@@ -70,7 +74,7 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                     {/* Gallery Section - Bambu Clean Style */}
                     <div className="lg:col-span-7 space-y-6">
                         <div className="bg-white dark:bg-[#111] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 p-8 shadow-sm relative group">
-                            
+
                             {/* 3D Badge (Visual only for now) */}
                             <div className="absolute top-4 right-4 z-10 bg-black/50 backdrop-blur text-white px-2 py-1 rounded text-[10px] font-bold uppercase flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Box className="w-3 h-3" /> Vista Previa
@@ -87,12 +91,12 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                 )}
                                 {producto.imagenes[imagenActiva] ? (
                                     <div className="w-full h-full relative">
-                                        <Image 
-                                            src={producto.imagenes[imagenActiva]} 
-                                            alt={producto.nombre} 
+                                        <Image
+                                            src={producto.imagenes[imagenActiva]}
+                                            alt={producto.nombre}
                                             fill
                                             priority
-                                            className="object-contain p-4 drop-shadow-2xl transition-transform hover:scale-105 duration-500" 
+                                            className="object-contain p-4 drop-shadow-2xl transition-transform hover:scale-105 duration-500"
                                             sizes="(max-width: 768px) 100vw, 50vw"
                                         />
                                     </div>
@@ -110,11 +114,11 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                         onClick={() => setImagenActiva(i)}
                                         className={`w-24 h-24 rounded-xl overflow-hidden shrink-0 border-2 bg-white dark:bg-[#111] p-1 transition-all snap-start relative ${i === imagenActiva ? 'border-[#00AE42] ring-2 ring-[#00AE42]/20 scale-105' : 'border-transparent hover:border-gray-300 dark:hover:border-gray-700 opacity-70 hover:opacity-100'}`}
                                     >
-                                        <Image 
-                                            src={img} 
-                                            alt="" 
+                                        <Image
+                                            src={img}
+                                            alt=""
                                             fill
-                                            className="object-cover rounded-lg" 
+                                            className="object-cover rounded-lg"
                                             sizes="100px"
                                         />
                                     </button>
@@ -134,7 +138,7 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                     {/* Info Section */}
                     <div className="lg:col-span-5">
                         <div className="lg:sticky lg:top-24 bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 lg:p-8 shadow-xl shadow-gray-200/50 dark:shadow-none relative overflow-hidden">
-                            
+
                             {/* Glow Effect */}
                             <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#00AE42]/10 blur-[80px] rounded-full pointer-events-none" />
 
@@ -251,8 +255,8 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                             <div className="flex gap-3 mb-8 relative z-10">
                                 <button
                                     onClick={handleAgregar}
-                                    className={`flex-1 py-4 text-white font-bold rounded-xl shadow-lg transition-all hover:-translate-y-1 flex items-center justify-center gap-2 text-sm uppercase tracking-wide ${producto.esPreventa 
-                                        ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20 hover:shadow-blue-500/40' 
+                                    className={`flex-1 py-4 text-white font-bold rounded-xl shadow-lg transition-all hover:-translate-y-1 flex items-center justify-center gap-2 text-sm uppercase tracking-wide ${producto.esPreventa
+                                        ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20 hover:shadow-blue-500/40'
                                         : 'bg-[#00AE42] hover:bg-[#008a34] shadow-[#00AE42]/20 hover:shadow-[#00AE42]/40'}`}
                                 >
                                     <ShoppingCart className="w-5 h-5" /> {producto.esPreventa ? 'Reservar Preventa' : 'Agregar al Carrito'}
@@ -268,9 +272,7 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                         <Package className="w-4 h-4 text-[#00AE42]" /> Especificaciones
                                     </h3>
                                     <div className="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-[#161616] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                            {producto.descripcion}
-                                        </ReactMarkdown>
+                                        <MarkdownView content={producto.descripcion} />
                                     </div>
                                 </div>
                             )}
@@ -289,8 +291,8 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                     </div>
                     <button
                         onClick={handleAgregar}
-                        className={`flex-[1.5] py-3.5 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 uppercase text-sm tracking-wide active:scale-95 transition-transform ${producto.esPreventa 
-                            ? 'bg-blue-600 shadow-blue-500/20' 
+                        className={`flex-[1.5] py-3.5 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 uppercase text-sm tracking-wide active:scale-95 transition-transform ${producto.esPreventa
+                            ? 'bg-blue-600 shadow-blue-500/20'
                             : 'bg-[#00AE42] shadow-[#00AE42]/20'}`}
                     >
                         {producto.esPreventa ? 'Reservar' : 'Agregar'}
