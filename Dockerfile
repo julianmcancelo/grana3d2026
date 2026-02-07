@@ -27,9 +27,13 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copiar archivos necesarios para standalone
-COPY --from=builder /app/public ./public
+# Copiar archivos necesarios para standalone
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Asegurar que el directorio de uploads exista y tenga permisos correctos
+RUN mkdir -p ./public/uploads && chown nextjs:nodejs ./public/uploads
 
 USER nextjs
 EXPOSE 3000
