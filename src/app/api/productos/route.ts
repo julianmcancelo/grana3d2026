@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { verifyToken } from '@/lib/auth'
 
 function slugify(text: string): string {
     return text
@@ -10,13 +11,26 @@ function slugify(text: string): string {
         .replace(/(^-|-$)+/g, '')
 }
 
+async function requireAdmin(request: NextRequest) {
+    const token = request.cookies.get('token')?.value || request.headers.get('Authorization')?.replace('Bearer ', '')
+    if (!token) return null
+    const payload = await verifyToken(token)
+    if (!payload || payload.rol !== 'ADMIN') return null
+    return payload
+}
+
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const destacados = searchParams.get('destacados') === 'true'
         const limite = parseInt(searchParams.get('limit') || searchParams.get('limite') || '20')
         const categoria = searchParams.get('categoria')
-        const todos = searchParams.get('all') === 'true' // Para admin
+        const todos = searchParams.get('all') === 'true' // Solo admin
+
+        if (todos) {
+            const admin = await requireAdmin(request)
+            if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+        }
 
         const where: any = todos ? {} : { activo: true }
         if (destacados) where.destacado = true
@@ -37,6 +51,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
+        const admin = await requireAdmin(request)
+        if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
         const body = await request.json()
         const {
             nombre, descripcion, precio, precioOferta, stock,

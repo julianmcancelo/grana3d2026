@@ -1,7 +1,14 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { verifyToken } from '@/lib/auth'
 
-const prisma = new PrismaClient();
+async function requireAdmin(request: NextRequest) {
+  const token = request.cookies.get('token')?.value || request.headers.get('Authorization')?.replace('Bearer ', '')
+  if (!token) return null
+  const payload = await verifyToken(token)
+  if (!payload || payload.rol !== 'ADMIN') return null
+  return payload
+}
 
 export async function GET() {
   try {
@@ -9,16 +16,19 @@ export async function GET() {
       where: { activa: true },
       orderBy: { fechaPublicacion: 'desc' },
       take: 5
-    });
-    return NextResponse.json(novedades);
+    })
+    return NextResponse.json(novedades)
   } catch (error) {
-    return NextResponse.json({ error: 'Error al obtener novedades' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al obtener novedades' }, { status: 500 })
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const data = await req.json();
+    const admin = await requireAdmin(req)
+    if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+    const data = await req.json()
     const novedad = await prisma.novedad.create({
       data: {
         titulo: data.titulo,
@@ -26,9 +36,9 @@ export async function POST(req: Request) {
         imagen: data.imagen,
         activa: true
       }
-    });
-    return NextResponse.json(novedad);
+    })
+    return NextResponse.json(novedad)
   } catch (error) {
-    return NextResponse.json({ error: 'Error al crear novedad' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al crear novedad' }, { status: 500 })
   }
 }

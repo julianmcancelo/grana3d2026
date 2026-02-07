@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { verifyToken } from '@/lib/auth'
+
+async function requireAdmin(request: NextRequest) {
+    const token = request.cookies.get('token')?.value || request.headers.get('Authorization')?.replace('Bearer ', '')
+    if (!token) return null
+    const payload = await verifyToken(token)
+    if (!payload || payload.rol !== 'ADMIN') return null
+    return payload
+}
 
 // POST - Suscribir email al newsletter
 export async function POST(request: NextRequest) {
@@ -40,8 +49,11 @@ export async function POST(request: NextRequest) {
 }
 
 // GET - Listar suscriptores (admin)
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        const admin = await requireAdmin(request)
+        if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
         const suscriptores = await prisma.suscriptor.findMany({
             orderBy: { createdAt: 'desc' }
         })
