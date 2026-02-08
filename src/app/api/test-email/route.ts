@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email';
 import { getWelcomeEmailTemplate, getOrderConfirmationTemplate } from '@/lib/email-templates';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -12,6 +13,17 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        // Obtener configuración real
+        const configuraciones = await prisma.configuracion.findMany()
+        const config: Record<string, any> = {}
+        for (const item of configuraciones) {
+            try {
+                config[item.clave] = JSON.parse(item.valor)
+            } catch {
+                config[item.clave] = item.valor
+            }
+        }
+
         let subject = 'Prueba de correo';
         let html = '';
 
@@ -19,15 +31,26 @@ export async function GET(request: NextRequest) {
             subject = '¡Bienvenido a Grana 3D! (Prueba)';
             html = getWelcomeEmailTemplate('Usuario de Prueba');
         } else if (type && type.startsWith('order_')) {
-            const dummyItem = { nombre: 'Producto de Prueba', cantidad: 2, precioUnitario: 1500 };
-            const dummyOrder = { id: 'TEST-123456', total: 3000 };
+            const dummyItem = { nombre: 'Producto de Prueba', cantidad: 2, precioUnitario: 1500, variante: 'Color Rojo' };
+            const dummyOrder = {
+                id: 'TEST-123456',
+                total: 3000,
+                nombreCliente: 'Juan',
+                apellidoCliente: 'Perez',
+                emailCliente: to,
+                direccionEnvio: 'Calle Falsa 123',
+                ciudadEnvio: 'CABA',
+                provinciaEnvio: 'Buenos Aires',
+                codigoPostalEnvio: '1414',
+                metodoEnvio: 'CORREO_ARGENTINO'
+            };
             let metodo = 'EFECTIVO';
 
             if (type === 'order_transfer') metodo = 'TRANSFERENCIA';
             if (type === 'order_mp') metodo = 'MERCADOPAGO';
 
             subject = `Confirmación de Pedido #TEST (Prueba ${metodo})`;
-            html = getOrderConfirmationTemplate(dummyOrder, [dummyItem], metodo);
+            html = getOrderConfirmationTemplate(dummyOrder, [dummyItem], metodo, config);
         } else {
             subject = 'Prueba de envío simple';
             html = '<h1>Correo de prueba</h1><p>El sistema de correos funciona correctamente.</p>';

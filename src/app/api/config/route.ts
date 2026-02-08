@@ -7,7 +7,7 @@ export async function GET() {
         const configuraciones = await prisma.configuracion.findMany({
             where: {
                 clave: {
-                    in: ['modoProximamente', 'textoProximamente', 'nombreTienda', 'whatsapp', 'instagram', 'email']
+                    in: ['modoProximamente', 'textoProximamente', 'nombreTienda', 'logoUrl', 'direccion', 'whatsapp', 'instagram', 'email']
                 }
             }
         })
@@ -16,6 +16,8 @@ export async function GET() {
             modoProximamente: false,
             textoProximamente: '¡Próximamente!',
             nombreTienda: 'Grana3D',
+            logoUrl: '',
+            direccion: '',
             whatsapp: '',
             instagram: '',
             email: ''
@@ -36,6 +38,8 @@ export async function GET() {
             modoProximamente: false,
             textoProximamente: '¡Próximamente!',
             nombreTienda: 'Grana3D',
+            logoUrl: '',
+            direccion: '',
             whatsapp: '',
             instagram: '',
             email: ''

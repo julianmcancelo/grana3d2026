@@ -1,16 +1,22 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Settings, Save, Loader2, Store, AlertTriangle, Check, Mail, Send } from 'lucide-react'
+import { Settings, Save, Loader2, Store, AlertTriangle, Check, Mail, Send, Banknote } from 'lucide-react'
 import api from '@/lib/api'
 
 interface Config {
     modoProximamente: boolean
     textoProximamente: string
     nombreTienda: string
+    logoUrl: string
+    direccion: string
     whatsapp: string
     email: string
     instagram: string
+    bancoNombre: string
+    bancoCbu: string
+    bancoAlias: string
+    bancoTitular: string
 }
 
 export default function ConfiguracionAdmin() {
@@ -18,9 +24,15 @@ export default function ConfiguracionAdmin() {
         modoProximamente: false,
         textoProximamente: '¡Estamos preparando algo increíble! Muy pronto podrás comprar online.',
         nombreTienda: 'Grana3D',
+        logoUrl: '',
+        direccion: '',
         whatsapp: '',
         email: '',
-        instagram: ''
+        instagram: '',
+        bancoNombre: '',
+        bancoCbu: '',
+        bancoAlias: '',
+        bancoTitular: ''
     })
     const [loading, setLoading] = useState(true)
     const [guardando, setGuardando] = useState(false)
@@ -188,6 +200,26 @@ export default function ConfiguracionAdmin() {
                             />
                         </div>
                         <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Logo (URL)</label>
+                            <input
+                                type="text"
+                                value={config.logoUrl}
+                                onChange={(e) => setConfig({ ...config, logoUrl: e.target.value })}
+                                placeholder="https://.../logo.png"
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Dirección / Ciudad</label>
+                            <input
+                                type="text"
+                                value={config.direccion}
+                                onChange={(e) => setConfig({ ...config, direccion: e.target.value })}
+                                placeholder="CABA, Argentina"
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
+                            />
+                        </div>
+                        <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-2">WhatsApp</label>
                             <input
                                 type="tel"
@@ -214,6 +246,67 @@ export default function ConfiguracionAdmin() {
                                 value={config.instagram}
                                 onChange={(e) => setConfig({ ...config, instagram: e.target.value })}
                                 placeholder="@usuario"
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
+                            />
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* DATOS BANCARIOS CARD */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="bg-[#111] border border-gray-800 rounded-xl overflow-hidden"
+                >
+                    <div className="p-6 border-b border-gray-800 flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/10 rounded-lg">
+                            <Banknote className="w-6 h-6 text-blue-500" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-white">Datos de Transferencia</h2>
+                            <p className="text-sm text-gray-500">Información que se mostrará en el checkout y emails.</p>
+                        </div>
+                    </div>
+
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Nombre del Banco</label>
+                            <input
+                                type="text"
+                                value={config.bancoNombre}
+                                onChange={(e) => setConfig({ ...config, bancoNombre: e.target.value })}
+                                placeholder="Ej: Banco Galicia"
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Titular de la Cuenta</label>
+                            <input
+                                type="text"
+                                value={config.bancoTitular}
+                                onChange={(e) => setConfig({ ...config, bancoTitular: e.target.value })}
+                                placeholder="Nombre y Apellido"
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">CBU / CVU</label>
+                            <input
+                                type="text"
+                                value={config.bancoCbu}
+                                onChange={(e) => setConfig({ ...config, bancoCbu: e.target.value })}
+                                placeholder="000000..."
+                                className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Alias</label>
+                            <input
+                                type="text"
+                                value={config.bancoAlias}
+                                onChange={(e) => setConfig({ ...config, bancoAlias: e.target.value })}
+                                placeholder="ALIAS.MP"
                                 className="w-full px-4 py-3 bg-[#1a1a1a] border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#00AE42] transition-colors"
                             />
                         </div>

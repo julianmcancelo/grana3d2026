@@ -183,10 +183,21 @@ export async function POST(request: NextRequest) {
             const { sendEmail } = await import('@/lib/email')
             const { getOrderConfirmationTemplate } = await import('@/lib/email-templates')
 
+            // Obtener configuración para el email
+            const configuraciones = await prisma.configuracion.findMany()
+            const config: Record<string, any> = {}
+            for (const item of configuraciones) {
+                try {
+                    config[item.clave] = JSON.parse(item.valor)
+                } catch {
+                    config[item.clave] = item.valor
+                }
+            }
+
             await sendEmail({
                 to: cliente.email,
                 subject: `Confirmación de Pedido #${pedido.id.slice(-6).toUpperCase()} - Grana 3D`,
-                html: getOrderConfirmationTemplate(pedido, itemsProcesados, metodoPago)
+                html: getOrderConfirmationTemplate(pedido, itemsProcesados, metodoPago, config)
             })
         } catch (emailError) {
             console.error('Error enviando correo de pedido:', emailError)
