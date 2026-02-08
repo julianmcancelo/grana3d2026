@@ -16,7 +16,7 @@ if [ -n "$DATABASE_URL" ]; then
     echo "🗃️ Sincronizando esquema de base de datos..."
     
     # Usamos el binario global instalado en el Dockerfile
-    prisma db push --accept-data-loss; then
+    if prisma db push --accept-data-loss; then
         echo "✅ Sincronización exitosa."
     else
         echo "❌ ERROR: Falló 'prisma db push'. Verifica 'DATABASE_URL'."
