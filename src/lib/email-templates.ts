@@ -1,69 +1,92 @@
 export const styles = {
     container: `
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        max-width: 600px;
+        max-width: 620px;
         margin: 0 auto;
-        background-color: #0a0a0a;
-        color: #e0e0e0;
-        border-radius: 12px;
+        background-color: #050505;
+        color: #e5e7eb;
+        border-radius: 16px;
         overflow: hidden;
-        border: 1px solid #333;
+        border: 1px solid #1f2937;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     `,
     header: `
-        background-color: #000;
-        padding: 24px;
+        background: linear-gradient(180deg, #0b0b0b 0%, #050505 100%);
+        padding: 28px 24px;
         text-align: center;
-        border-bottom: 2px solid #22c55e;
+        border-bottom: 2px solid #00AE42;
+        background-image: linear-gradient(#0b0b0b 1px, transparent 1px), linear-gradient(90deg, #0b0b0b 1px, transparent 1px);
+        background-size: 36px 36px;
     `,
     content: `
         padding: 32px 24px;
-        background-color: #111;
+        background-color: #0b0b0b;
     `,
     footer: `
-        background-color: #000;
-        padding: 16px;
+        background-color: #050505;
+        padding: 18px;
         text-align: center;
         font-size: 12px;
-        color: #666;
-        border-top: 1px solid #333;
+        color: #9ca3af;
+        border-top: 1px solid #1f2937;
     `,
     button: `
         display: inline-block;
-        padding: 12px 24px;
-        background-color: #22c55e;
-        color: #000;
+        padding: 12px 22px;
+        background-color: #ffffff;
+        color: #0b0b0b;
         text-decoration: none;
-        border-radius: 6px;
-        font-weight: bold;
-        margin-top: 20px;
+        border-radius: 10px;
+        font-weight: 800;
+        margin-top: 18px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.6px;
     `,
     highlight: `
-        color: #22c55e;
-        font-weight: bold;
+        color: #00AE42;
+        font-weight: 700;
+    `,
+    badge: `
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background-color: #00AE42;
+        color: #0b0b0b;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+    `,
+    card: `
+        background-color: #111;
+        padding: 18px;
+        border-radius: 12px;
+        border: 1px solid #1f2937;
+        margin-top: 18px;
     `,
     table: `
         width: 100%;
         border-collapse: collapse;
-        margin: 20px 0;
+        margin: 18px 0 10px 0;
         font-size: 14px;
     `,
     th: `
         text-align: left;
         padding: 12px;
-        border-bottom: 1px solid #333;
-        color: #888;
+        border-bottom: 1px solid #1f2937;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-size: 11px;
     `,
     td: `
         padding: 12px;
-        border-bottom: 1px solid #222;
+        border-bottom: 1px solid #111827;
     `,
     total: `
         text-align: right;
         font-size: 18px;
-        font-weight: bold;
-        padding-top: 20px;
+        font-weight: 800;
+        padding-top: 10px;
         color: #fff;
     `
 };
@@ -72,18 +95,22 @@ export function getWelcomeEmailTemplate(nombre: string) {
     return `
         <div style="${styles.container}">
             <div style="${styles.header}">
-                <h1 style="margin:0; color:#fff; letter-spacing: 1px;">GRANA 3D</h1>
+                <h1 style="margin:0; color:#fff; letter-spacing: 2px; font-weight: 800;">GRANA 3D</h1>
+                <p style="margin:6px 0 0 0; color:#9ca3af; font-size:12px; letter-spacing:2px; text-transform:uppercase;">Impresión 3D • Buenos Aires</p>
             </div>
             <div style="${styles.content}">
-                <h2 style="color:#fff;">¡Hola ${nombre}! 👋</h2>
-                <p>Bienvenido al futuro de la impresión 3D. Tu cuenta ha sido creada exitosamente.</p>
-                <p>Ahora puedes acceder a nuestra colección exclusiva de modelos, gestionar tus pedidos y más.</p>
+                <p style="margin:0 0 8px 0; color:#9ca3af; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Cuenta activada</p>
+                <h2 style="color:#fff; margin:0 0 12px 0;">¡Hola ${nombre}! 👋</h2>
+                <p>Bienvenido a Grana 3D. Ya tenés tu cuenta lista para explorar modelos, hacer pedidos y seguir el estado de cada impresión.</p>
+                <div style="${styles.card}">
+                    <p style="margin:0; color:#e5e7eb;">Si te pinta, guardá este mail: es tu punto de partida para todo lo nuevo que vayamos lanzando.</p>
+                </div>
                 <div style="text-align: center;">
-                    <a href="${process.env.NEXTAUTH_URL || '#'}" style="${styles.button}">Explorar Modelos</a>
+                    <a href="${process.env.NEXTAUTH_URL || '#'}" style="${styles.button}">Ir a la tienda</a>
                 </div>
             </div>
             <div style="${styles.footer}">
-                <p>&copy; ${new Date().getFullYear()} Grana 3D. Todos los derechos reservados.</p>
+                <p style="margin:0;">&copy; ${new Date().getFullYear()} Grana 3D. Hecho con filamento y paciencia.</p>
             </div>
         </div>
     `;
@@ -101,27 +128,27 @@ export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPa
 
     if (metodoPago === 'TRANSFERENCIA') {
         instruccionesPago = `
-            <div style="background-color: #1a1a1a; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #333;">
-                <h3 style="margin-top:0; color: #22c55e;">Datos para Transferencia</h3>
-                <p style="margin:5px 0;">Banco: <span style="color:#fff">Banco Example</span></p>
-                <p style="margin:5px 0;">CBU: <span style="color:#fff">0000003100000000000000</span></p>
-                <p style="margin:5px 0;">Alias: <span style="color:#fff; font-weight:bold;">GRANA.3D.PAGO</span></p>
-                <p style="margin:5px 0;">Titular: <span style="color:#fff">Julian Cancelo</span></p>
-                <p style="font-size:13px; color:#888; margin-top:10px;">Envia el comprobante por WhatsApp con tu número de pedido.</p>
+            <div style="${styles.card}">
+                <h3 style="margin-top:0; color: #00AE42;">Datos para Transferencia</h3>
+                <p style="margin:6px 0;">Banco: <span style="color:#fff">Banco Example</span></p>
+                <p style="margin:6px 0;">CBU: <span style="color:#fff">0000003100000000000000</span></p>
+                <p style="margin:6px 0;">Alias: <span style="color:#fff; font-weight:bold;">GRANA.3D.PAGO</span></p>
+                <p style="margin:6px 0;">Titular: <span style="color:#fff">Julian Cancelo</span></p>
+                <p style="font-size:12px; color:#9ca3af; margin-top:10px;">Enviá el comprobante por WhatsApp con tu número de pedido.</p>
             </div>
         `;
     } else if (metodoPago === 'EFECTIVO') {
         instruccionesPago = `
-            <div style="background-color: #1a1a1a; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #333;">
-                <h3 style="margin-top:0; color: #22c55e;">Pago en Efectivo</h3>
-                <p>Ten listo el monto exacto al momento de la entrega o retiro para agilizar el proceso.</p>
+            <div style="${styles.card}">
+                <h3 style="margin-top:0; color: #00AE42;">Pago en Efectivo</h3>
+                <p>Tené listo el monto exacto al momento de la entrega o retiro para agilizar el proceso.</p>
             </div>
         `;
     } else if (metodoPago === 'MERCADOPAGO') {
         instruccionesPago = `
-            <div style="background-color: #1a1a1a; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #333;">
+            <div style="${styles.card}">
                 <h3 style="margin-top:0; color: #009ee3;">Pago por Mercado Pago</h3>
-                <p>Tu pago está siendo procesado. Te avisaremos cuando se acredite.</p>
+                <p>Tu pago está siendo procesado. Te avisamos cuando se acredite.</p>
             </div>
         `;
     }
@@ -129,12 +156,13 @@ export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPa
     return `
         <div style="${styles.container}">
             <div style="${styles.header}">
-                <h1 style="margin:0; color:#fff;">Confirmación de Pedido</h1>
-                <p style="margin:5px 0 0 0; color:#22c55e;">#${pedido.id.slice(-6).toUpperCase()}</p>
+                <h1 style="margin:0; color:#fff; letter-spacing:2px; font-weight:800;">GRANA 3D</h1>
+                <p style="margin:6px 0 12px 0; color:#9ca3af; font-size:12px; letter-spacing:2px; text-transform:uppercase;">Confirmación de pedido</p>
+                <span style="${styles.badge}">#${pedido.id.slice(-6).toUpperCase()}</span>
             </div>
             <div style="${styles.content}">
-                <h2 style="color:#fff;">¡Gracias por tu compra!</h2>
-                <p>Hemos recibido tu pedido correctamente. A continuación los detalles:</p>
+                <h2 style="color:#fff; margin:0 0 8px 0;">¡Gracias por tu compra!</h2>
+                <p>Recibimos tu pedido y ya lo estamos preparando. Abajo tenés el resumen:</p>
                 
                 <table style="${styles.table}">
                     <thead>
@@ -155,12 +183,12 @@ export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPa
                 ${instruccionesPago}
 
                 <div style="text-align: center;">
-                    <a href="${process.env.NEXTAUTH_URL}/pedidos/mis-pedidos" style="${styles.button}">Ver Estado del Pedido</a>
+                    <a href="${process.env.NEXTAUTH_URL}/pedidos/mis-pedidos" style="${styles.button}">Ver estado del pedido</a>
                 </div>
             </div>
             <div style="${styles.footer}">
-                <p>Si tienes alguna duda, contáctanos por WhatsApp.</p>
-                <p>&copy; ${new Date().getFullYear()} Grana 3D.</p>
+                <p style="margin:0 0 6px 0;">¿Dudas? Escribinos por WhatsApp.</p>
+                <p style="margin:0;">&copy; ${new Date().getFullYear()} Grana 3D.</p>
             </div>
         </div>
     `;
