@@ -1,93 +1,85 @@
 export const styles = {
     container: `
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        max-width: 620px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 600px;
         margin: 0 auto;
-        background-color: #050505;
-        color: #e5e7eb;
-        border-radius: 16px;
+        background-color: #000000;
+        color: #f3f4f6;
+        border-radius: 24px;
         overflow: hidden;
-        border: 1px solid #1f2937;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        border: 1px solid #1f1f1f;
     `,
     header: `
-        background: linear-gradient(180deg, #0b0b0b 0%, #050505 100%);
-        padding: 28px 24px;
+        background-color: #000000;
+        padding: 40px 32px;
         text-align: center;
-        border-bottom: 2px solid #00AE42;
-        background-image: linear-gradient(#0b0b0b 1px, transparent 1px), linear-gradient(90deg, #0b0b0b 1px, transparent 1px);
-        background-size: 36px 36px;
+        border-bottom: 1px solid #1f1f1f;
     `,
     content: `
-        padding: 32px 24px;
-        background-color: #0b0b0b;
+        padding: 40px 32px;
+        background-color: #0a0a0a;
     `,
     footer: `
-        background-color: #050505;
-        padding: 18px;
+        background-color: #000000;
+        padding: 32px;
         text-align: center;
         font-size: 12px;
-        color: #9ca3af;
-        border-top: 1px solid #1f2937;
+        color: #6b7280;
+        border-top: 1px solid #1f1f1f;
     `,
     button: `
         display: inline-block;
-        padding: 12px 22px;
-        background-color: #ffffff;
-        color: #0b0b0b;
+        padding: 14px 32px;
+        background-color: #00AE42;
+        color: #ffffff;
         text-decoration: none;
-        border-radius: 10px;
-        font-weight: 800;
-        margin-top: 18px;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        margin-top: 24px;
+        transition: all 0.2s;
     `,
     highlight: `
         color: #00AE42;
-        font-weight: 700;
+        font-weight: 600;
     `,
     badge: `
         display: inline-block;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background-color: #00AE42;
-        color: #0b0b0b;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        background-color: rgba(0, 174, 66, 0.1);
+        color: #00AE42;
         font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.6px;
+        font-weight: 600;
+        border: 1px solid rgba(0, 174, 66, 0.2);
     `,
     card: `
-        background-color: #111;
-        padding: 18px;
-        border-radius: 12px;
-        border: 1px solid #1f2937;
-        margin-top: 18px;
+        background-color: #111111;
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid #222;
+        margin-top: 24px;
     `,
     table: `
         width: 100%;
-        border-collapse: collapse;
-        margin: 18px 0 10px 0;
-        font-size: 14px;
+        border-collapse: separate;
+        border-spacing: 0;
     `,
     th: `
         text-align: left;
-        padding: 12px;
-        border-bottom: 1px solid #1f2937;
+        padding: 12px 0;
         color: #9ca3af;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
         font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        border-bottom: 1px solid #222;
     `,
     td: `
-        padding: 12px;
-        border-bottom: 1px solid #111827;
-    `,
-    total: `
-        text-align: right;
-        font-size: 18px;
-        font-weight: 800;
-        padding-top: 10px;
-        color: #fff;
+        padding: 16px 0;
+        border-bottom: 1px solid #1a1a1a;
+        color: #e5e5e5;
+        font-size: 14px;
     `
 };
 
@@ -106,212 +98,237 @@ export type EmailBrandConfig = {
     bancoTitular?: string
 }
 
-export function getWelcomeEmailTemplate(nombre: string, config: EmailBrandConfig = {}) {
+const getBaseUrl = () => process.env.NEXTAUTH_URL || 'https://grana3d.com.ar';
+
+const getHeaderHtml = (config: EmailBrandConfig) => {
     const brandName = config.nombreTienda || 'Grana 3D'
     const logoUrl = config.logoUrl || ''
-    const direccion = config.direccion || ''
+
+    return logoUrl
+        ? `<img src="${logoUrl}" alt="${brandName}" style="max-height:40px; display:block; margin:0 auto;" />`
+        : `<h1 style="margin:0; color:#fff; font-size: 24px; font-weight: 700; letter-spacing: -0.02em;">${brandName}</h1>`
+}
+
+const getFooterHtml = (config: EmailBrandConfig) => {
+    const brandName = config.nombreTienda || 'Grana 3D'
     const whatsappLink = config.whatsappLink || ''
     const instagramLink = config.instagramLink || ''
     const email = config.email || ''
 
-    const headerBrandHtml = logoUrl
-        ? `<img src="${logoUrl}" alt="${brandName}" style="max-height:48px; display:block; margin:0 auto 8px auto;" />
-           <div style="color:#fff; letter-spacing:2px; font-weight:800; font-size:20px;">${brandName}</div>`
-        : `<h1 style="margin:0; color:#fff; letter-spacing: 2px; font-weight: 800;">${brandName}</h1>`
+    const links = [
+        whatsappLink ? `<a href="${whatsappLink}" style="color:#6b7280; text-decoration:none; margin:0 8px;">WhatsApp</a>` : '',
+        instagramLink ? `<a href="${instagramLink}" style="color:#6b7280; text-decoration:none; margin:0 8px;">Instagram</a>` : '',
+        email ? `<a href="mailto:${email}" style="color:#6b7280; text-decoration:none; margin:0 8px;">Email</a>` : ''
+    ].filter(Boolean).join('•');
 
-    const contactLinks = [
-        whatsappLink ? `<a href="${whatsappLink}" style="color:#00AE42; text-decoration:none;">WhatsApp</a>` : '',
-        instagramLink ? `<a href="${instagramLink}" style="color:#00AE42; text-decoration:none;">Instagram</a>` : '',
-        email ? `<a href="mailto:${email}" style="color:#00AE42; text-decoration:none;">${email}</a>` : ''
-    ].filter(Boolean).join(' • ')
+    return `
+        <div style="${styles.footer}">
+            <div style="margin-bottom: 24px;">${links}</div>
+            <p style="margin:0;">&copy; ${new Date().getFullYear()} ${brandName}. Designed to Engineer.</p>
+        </div>
+    `
+}
+
+export function getWelcomeEmailTemplate(nombre: string, config: EmailBrandConfig = {}, couponCode?: string) {
+    const brandName = config.nombreTienda || 'Grana 3D'
+    const baseUrl = getBaseUrl();
+
+    const couponHtml = couponCode ? `
+        <div style="${styles.card}; text-align: center; border: 1px solid #00AE42;">
+            <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Regalo de Bienvenida</p>
+            <h3 style="margin: 0 0 16px 0; color: #fff; font-size: 28px; letter-spacing: -0.02em;">15% OFF</h3>
+            <div style="background-color: #000; color: #00AE42; font-family: monospace; font-size: 20px; font-weight: 700; padding: 16px; border-radius: 8px; display: inline-block; letter-spacing: 0.1em; border: 1px dashed #333;">
+                ${couponCode}
+            </div>
+            <p style="margin: 16px 0 0 0; color: #6b7280; font-size: 12px;">Válido para tu primera compra.</p>
+        </div>
+    ` : '';
 
     return `
         <div style="${styles.container}">
             <div style="${styles.header}">
-                ${headerBrandHtml}
-                ${direccion ? `<p style="margin:6px 0 0 0; color:#9ca3af; font-size:12px; letter-spacing:2px; text-transform:uppercase;">${direccion}</p>` : ''}
+                ${getHeaderHtml(config)}
             </div>
             <div style="${styles.content}">
-                <p style="margin:0 0 8px 0; color:#9ca3af; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Cuenta activada</p>
-                <h2 style="color:#fff; margin:0 0 12px 0;">¡Hola ${nombre}! 👋</h2>
-                <p>Bienvenido a ${brandName}. Ya tenés tu cuenta lista para explorar modelos, hacer pedidos y seguir el estado de cada impresión.</p>
-                <div style="${styles.card}">
-                    <p style="margin:0; color:#e5e7eb;">Si te pinta, guardá este mail: es tu punto de partida para todo lo nuevo que vayamos lanzando.</p>
-                </div>
+                <h2 style="color:#fff; margin:0 0 16px 0; font-size: 20px;">Bienvenido, ${nombre}</h2>
+                <p style="color:#9ca3af; line-height: 1.6; margin: 0 0 24px 0;">
+                    Gracias por unirte a ${brandName}. Tu cuenta ha sido creada exitosamente.
+                    Ahora tenés acceso a nuestra plataforma de gestión de impresiones y seguimiento.
+                </p>
+                
+                ${couponHtml}
+
                 <div style="text-align: center;">
-                    <a href="${process.env.NEXTAUTH_URL || '#'}" style="${styles.button}">Ir a la tienda</a>
+                    <a href="${baseUrl}" style="${styles.button}">Ir a la Tienda</a>
                 </div>
             </div>
-            <div style="${styles.footer}">
-                ${contactLinks ? `<p style="margin:0 0 6px 0;">${contactLinks}</p>` : ''}
-                <p style="margin:0;">&copy; ${new Date().getFullYear()} ${brandName}. Hecho con filamento y paciencia.</p>
-            </div>
+            ${getFooterHtml(config)}
         </div>
     `;
 }
 
 export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPago: string, config: EmailBrandConfig = {}) {
-    const brandName = config.nombreTienda || 'Grana 3D'
-    const logoUrl = config.logoUrl || ''
-    const direccion = config.direccion || ''
-    const whatsappLink = config.whatsappLink || ''
-    const instagramLink = config.instagramLink || ''
-    const email = config.email || ''
+    const baseUrl = getBaseUrl();
 
-    const headerBrandHtml = logoUrl
-        ? `<img src="${logoUrl}" alt="${brandName}" style="max-height:42px; display:block; margin:0 auto 8px auto;" />
-           <div style="color:#fff; letter-spacing:2px; font-weight:800; font-size:18px;">${brandName}</div>`
-        : `<div style="color:#fff; letter-spacing:2px; font-weight:800; font-size:20px;">${brandName}</div>`
-
-    const contactLinks = [
-        whatsappLink ? `<a href="${whatsappLink}" style="color:#00AE42; text-decoration:none;">WhatsApp</a>` : '',
-        instagramLink ? `<a href="${instagramLink}" style="color:#00AE42; text-decoration:none;">Instagram</a>` : '',
-        email ? `<a href="mailto:${email}" style="color:#00AE42; text-decoration:none;">${email}</a>` : ''
-    ].filter(Boolean).join(' • ')
-
+    // Items Logic
     const itemsHtml = items.map(item => `
         <tr>
             <td style="${styles.td}">
-                <div style="font-weight: bold; color: #fff;">${item.nombre}</div>
-                ${item.variante ? `<div style="font-size: 12px; color: #888;">${item.variante}</div>` : ''}
-                <div style="font-size: 12px; color: #666;">Cant: ${item.cantidad}</div>
+                <div style="font-weight: 500; color: #fff;">${item.nombre}</div>
+                ${item.variante ? `<div style="font-size: 12px; color: #6b7280; margin-top: 4px;">${item.variante}</div>` : ''}
             </td>
-            <td style="${styles.td}; text-align:right; vertical-align: top;">
-                $ ${Intl.NumberFormat('es-AR').format(item.precioUnitario * item.cantidad)}
+            <td style="${styles.td}; text-align: right; vertical-align: top;">
+                <div style="color: #9ca3af; font-size: 12px;">x${item.cantidad}</div>
+            </td>
+            <td style="${styles.td}; text-align: right; vertical-align: top; font-weight: 500;">
+                $${Intl.NumberFormat('es-AR').format(item.precioUnitario * item.cantidad)}
             </td>
         </tr>
     `).join('');
 
-    let instruccionesPago = '';
-    const bancoNombre = config.bancoNombre || ''
-    const bancoCbu = config.bancoCbu || ''
-    const bancoAlias = config.bancoAlias || ''
-    const bancoTitular = config.bancoTitular || ''
-
-    const bancoRows = [
-        bancoNombre ? `<div style="border-bottom: 1px solid #262626; padding-bottom: 8px;">
-                <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Banco</span>
-                <span style="font-size: 16px; color: #fff; font-weight: 500;">${bancoNombre}</span>
-            </div>` : '',
-        bancoCbu ? `<div style="border-bottom: 1px solid #262626; padding-bottom: 8px;">
-                <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">CBU / CVU</span>
-                <span style="font-size: 16px; color: #fff; font-family: monospace; letter-spacing: 1px;">${bancoCbu}</span>
-            </div>` : '',
-        bancoAlias ? `<div style="border-bottom: 1px solid #262626; padding-bottom: 8px;">
-                <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Alias</span>
-                <span style="font-size: 18px; color: #22c55e; font-weight: bold;">${bancoAlias}</span>
-            </div>` : '',
-        bancoTitular ? `<div>
-                <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Titular</span>
-                <span style="font-size: 16px; color: #fff;">${bancoTitular}</span>
-            </div>` : ''
-    ].filter(Boolean).join('')
+    // Payment Logic
+    let paymentInfo = '';
 
     if (metodoPago === 'TRANSFERENCIA') {
-        instruccionesPago = `
-            <div style="background-color: #161616; padding: 24px; border-radius: 12px; margin: 24px 0; border: 1px solid #333;">
-                <h3 style="margin-top:0; color: #22c55e; font-size: 18px; margin-bottom: 16px;">Datos para Transferencia</h3>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    ${bancoRows || '<p style="color:#aaa; margin:0;">Te vamos a enviar los datos por WhatsApp.</p>'}
+        const bancoNombre = config.bancoNombre || '';
+        const bancoAlias = config.bancoAlias || '';
+        const bancoCbu = config.bancoCbu || '';
+
+        paymentInfo = `
+            <div style="${styles.card}">
+                <h3 style="margin:0 0 16px 0; color: #fff; font-size: 15px;">Datos de Transferencia</h3>
+                <div style="font-family: monospace; color: #9ca3af; font-size: 13px; line-height: 1.8;">
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid #222; padding-bottom:8px; margin-bottom:8px;">
+                        <span>Banco</span> <span style="color:#fff">${bancoNombre}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid #222; padding-bottom:8px; margin-bottom:8px;">
+                        <span>Alias</span> <span style="color:#00AE42; font-weight:bold;">${bancoAlias}</span>
+                    </div>
+                    <div>
+                        <span>CBU</span> <span style="color:#fff">${bancoCbu}</span>
+                    </div>
                 </div>
-                <div style="margin-top: 20px; font-size: 13px; color: #888; background-color: rgba(34, 197, 94, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2);">
-                    ⚠️ <strong>Importante:</strong> Enviá el comprobante por WhatsApp indicando tu número de pedido <strong>#${pedido.id.slice(-6).toUpperCase()}</strong> para agilizar el despacho.
+                <div style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; color: #60a5fa; font-size: 12px;">
+                    Por favor envianos el comprobante respondiendo a este correo o por WhatsApp.
                 </div>
-            </div>
-        `;
-    } else if (metodoPago === 'EFECTIVO') {
-        instruccionesPago = `
-            <div style="background-color: #161616; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #333;">
-                <h3 style="margin-top:0; color: #f59e0b;">Pago en Efectivo</h3>
-                <p style="color: #ccc;">Tené listo el monto exacto al momento de la entrega o retiro para agilizar el proceso.</p>
-            </div>
-        `;
-    } else if (metodoPago === 'MERCADOPAGO') {
-        instruccionesPago = `
-            <div style="background-color: #161616; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #333;">
-                <h3 style="margin-top:0; color: #009ee3;">Pago por Mercado Pago</h3>
-                <p style="color: #ccc;">Tu pago está siendo procesado por Mercado Pago. Te avisamos apenas se acredite.</p>
             </div>
         `;
     }
 
-    const direccionEnvioHtml = pedido.metodoEnvio !== 'RETIRO_LOCAL' ? `
-        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #222;">
-            <h3 style="color: #fff; font-size: 16px; margin: 0 0 12px 0;">📍 Datos de Envío</h3>
-            <p style="margin: 0; color: #aaa; line-height: 1.5;">
-                ${pedido.direccionEnvio}<br>
-                ${pedido.ciudadEnvio}, ${pedido.provinciaEnvio}<br>
-                CP: ${pedido.codigoPostalEnvio}
-            </p>
-        </div>
-    ` : `
-         <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #222;">
-            <h3 style="color: #fff; font-size: 16px; margin: 0 0 12px 0;">🏪 Retiro en Local</h3>
-            <p style="margin: 0; color: #aaa; line-height: 1.5;">
-                Te esperamos en nuestro local para retirar tu pedido.<br>
-                Coordiná el horario por WhatsApp.
-            </p>
-        </div>
-    `;
-
     return `
         <div style="${styles.container}">
             <div style="${styles.header}">
-                ${headerBrandHtml}
-                ${direccion ? `<p style="margin:6px 0 10px 0; color:#9ca3af; font-size:12px; letter-spacing:2px; text-transform:uppercase;">${direccion}</p>` : ''}
-                <span style="${styles.badge}">#${pedido.id.slice(-6).toUpperCase()}</span>
+                ${getHeaderHtml(config)}
+                <div style="margin-top: 16px;">
+                    <span style="${styles.badge}">Pedido #${pedido.id.slice(-6).toUpperCase()}</span>
+                </div>
             </div>
             <div style="${styles.content}">
-                <p style="color:#fff; font-size: 16px; margin-top: 0;">¡Hola <strong>${pedido.nombreCliente}</strong>!</p>
-                <p style="color:#aaa;">Recibimos tu pedido correctamente. A continuación los detalles:</p>
-                
-                ${instruccionesPago}
+                <h2 style="color:#fff; margin:0 0 8px 0; font-size: 24px; text-align: center;">Confirmación de Pedido</h2>
+                <p style="color:#9ca3af; text-align: center; margin: 0 0 32px 0;">Gracias por confiar en nosotros.</p>
 
-                <div style="background-color: #161616; border-radius: 8px; overflow: hidden; border: 1px solid #222; margin-top: 24px;">
-                    <table style="${styles.table}; margin: 0;">
+                <div style="background-color: #111; border-radius: 16px; border: 1px solid #222; overflow: hidden;">
+                    <table style="${styles.table}; padding: 0 24px;">
                         <thead>
-                            <tr style="background-color: #111;">
-                                <th style="${styles.th}; border-bottom: 1px solid #333; color: #666; font-size: 11px; text-transform: uppercase;">Producto</th>
-                                <th style="${styles.th}; border-bottom: 1px solid #333; color: #666; font-size: 11px; text-transform: uppercase; text-align: right;">Total</th>
+                            <tr>
+                                <th style="${styles.th}">Producto</th>
+                                <th style="${styles.th}; text-align: right;">Cant.</th>
+                                <th style="${styles.th}; text-align: right;">Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${itemsHtml}
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" style="padding-top: 16px; color: #9ca3af; font-size: 13px;">Envío</td>
+                                <td style="padding-top: 16px; text-align: right; color: #fff;">
+                                    ${pedido.metodoEnvio === 'RETIRO_LOCAL' ? 'Gratis' : 'A convenir'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" style="padding: 12px 0 24px 0; color: #fff; font-weight: 600; font-size: 16px;">Total</td>
+                                <td style="padding: 12px 0 24px 0; text-align: right; color: #00AE42; font-weight: 700; font-size: 18px;">
+                                    $${Intl.NumberFormat('es-AR').format(pedido.total)}
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
-                    <div style="padding: 16px; background-color: #111; border-top: 1px solid #222;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #888; font-size: 14px;">
-                            <span>Envío</span>
-                            <span>${pedido.metodoEnvio === 'RETIRO_LOCAL' ? 'Gratis' : 'A convenir'}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; color: #fff; font-size: 18px; font-weight: bold; padding-top: 12px; border-top: 1px dashed #333;">
-                            <span>Total</span>
-                            <span style="color: #22c55e;">$ ${Intl.NumberFormat('es-AR').format(pedido.total)}</span>
-                        </div>
-                    </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                    ${direccionEnvioHtml}
-                    
-                    <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #222;">
-                        <h3 style="color: #fff; font-size: 16px; margin: 0 0 12px 0;">👤 Cliente</h3>
-                         <p style="margin: 0; color: #aaa; line-height: 1.5;">
-                            ${pedido.nombreCliente} ${pedido.apellidoCliente || ''}<br>
-                            ${pedido.emailCliente}<br>
-                            ${pedido.telefonoCliente || ''}
-                        </p>
-                    </div>
+                ${paymentInfo}
+
+                <div style="margin-top: 32px; border-top: 1px solid #1f1f1f; padding-top: 24px;">
+                    <h3 style="color: #fff; font-size: 15px; margin-bottom: 12px;">Información de Envío</h3>
+                    <p style="color: #9ca3af; font-size: 14px; line-height: 1.6;">
+                        ${pedido.direccionEnvio || 'Retiro en Local'}<br>
+                        ${pedido.ciudadEnvio ? `${pedido.ciudadEnvio}, ${pedido.provinciaEnvio}` : ''}
+                    </p>
                 </div>
 
-                <div style="text-align: center; margin-top: 32px;">
-                    <a href="${process.env.NEXTAUTH_URL}/pedidos/mis-pedidos" style="${styles.button}">Ver estado del pedido</a>
+                <div style="text-align: center;">
+                    <a href="${baseUrl}/pedidos/mis-pedidos" style="${styles.button}">Ver Estado del Pedido</a>
                 </div>
             </div>
-            <div style="${styles.footer}">
-                ${contactLinks ? `<p style="margin: 0 0 8px 0;">${contactLinks}</p>` : ''}
-                <p style="margin: 0;">&copy; ${new Date().getFullYear()} ${brandName}.</p>
+            ${getFooterHtml(config)}
+        </div>
+    `;
+}
+
+export function getOrderStatusUpdateTemplate(pedido: any, config: EmailBrandConfig = {}) {
+    const baseUrl = getBaseUrl();
+    const estadoLabels: Record<string, string> = {
+        'PENDIENTE': 'Pendiente',
+        'PAGADO': 'Pago Confirmado',
+        'EN_PROCESO': 'En Producción',
+        'ENVIADO': 'En Camino',
+        'ENTREGADO': 'Entregado',
+        'CANCELADO': 'Cancelado'
+    };
+
+    const estadoColor = pedido.estado === 'ENVIADO' ? '#00AE42' : '#fff';
+    const estadoTexto = estadoLabels[pedido.estado] || pedido.estado;
+
+    let trackingHtml = '';
+    if (pedido.estado === 'ENVIADO' && pedido.codigoSeguimiento) {
+        trackingHtml = `
+            <div style="${styles.card}; border: 1px solid #00AE42; background: rgba(0, 174, 66, 0.05);">
+                <h3 style="margin:0 0 12px 0; color: #00AE42; font-size: 15px;">Información de Seguimiento</h3>
+                <p style="margin: 0 0 8px 0; color: #e5e5e5; font-size: 14px;">
+                    Empresa: <strong style="color: #fff;">${pedido.empresaEnvio || 'Correo'}</strong>
+                </p>
+                <div style="background: #000; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 16px; color: #fff; letter-spacing: 1px; border: 1px dashed #333;">
+                    ${pedido.codigoSeguimiento}
+                </div>
+                <p style="margin: 12px 0 0 0; color: #9ca3af; font-size: 12px;">Podés usar este código para seguir tu paquete.</p>
             </div>
+        `;
+    }
+
+    return `
+        <div style="${styles.container}">
+            <div style="${styles.header}">
+                ${getHeaderHtml(config)}
+            </div>
+            <div style="${styles.content}">
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;">Actualización de Estado</p>
+                    <h2 style="color: ${estadoColor}; margin: 0; font-size: 28px; letter-spacing: -0.02em;">${estadoTexto}</h2>
+                </div>
+
+                <p style="color: #d1d5db; line-height: 1.6; text-align: center; margin-bottom: 32px;">
+                    El estado de tu pedido <strong>#${pedido.id.slice(-6).toUpperCase()}</strong> ha sido actualizado.
+                    ${pedido.estado === 'EN_PROCESO' ? 'Estamos preparando tus productos con la máxima calidad.' : ''}
+                    ${pedido.estado === 'ENVIADO' ? 'Tu paquete ya salió de nuestro taller y está en camino.' : ''}
+                </p>
+
+                ${trackingHtml}
+
+                <div style="text-align: center;">
+                    <a href="${baseUrl}/pedidos/mis-pedidos" style="${styles.button}">Rastrear Pedido</a>
+                </div>
+            </div>
+            ${getFooterHtml(config)}
         </div>
     `;
 }
