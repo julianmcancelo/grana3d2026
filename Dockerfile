@@ -41,8 +41,8 @@ RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
-# Instalar Prisma CLI localmente como usuario nextjs
-RUN npm install prisma@6.19.2 --no-save
+# Prisma CLI se usa con npx prisma@6.19.2 en start.sh
+# (evitamos instalar paquetes extra en runtime)
 
 EXPOSE 3000
 ENV PORT 3000
