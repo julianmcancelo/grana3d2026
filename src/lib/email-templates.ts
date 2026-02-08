@@ -150,7 +150,25 @@ export function getWelcomeEmailTemplate(nombre: string, config: EmailBrandConfig
     `;
 }
 
-export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPago: string, config: any = {}) {
+export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPago: string, config: EmailBrandConfig = {}) {
+    const brandName = config.nombreTienda || 'Grana 3D'
+    const logoUrl = config.logoUrl || ''
+    const direccion = config.direccion || ''
+    const whatsappLink = config.whatsappLink || ''
+    const instagramLink = config.instagramLink || ''
+    const email = config.email || ''
+
+    const headerBrandHtml = logoUrl
+        ? `<img src="${logoUrl}" alt="${brandName}" style="max-height:42px; display:block; margin:0 auto 8px auto;" />
+           <div style="color:#fff; letter-spacing:2px; font-weight:800; font-size:18px;">${brandName}</div>`
+        : `<div style="color:#fff; letter-spacing:2px; font-weight:800; font-size:20px;">${brandName}</div>`
+
+    const contactLinks = [
+        whatsappLink ? `<a href="${whatsappLink}" style="color:#00AE42; text-decoration:none;">WhatsApp</a>` : '',
+        instagramLink ? `<a href="${instagramLink}" style="color:#00AE42; text-decoration:none;">Instagram</a>` : '',
+        email ? `<a href="mailto:${email}" style="color:#00AE42; text-decoration:none;">${email}</a>` : ''
+    ].filter(Boolean).join(' • ')
+
     const itemsHtml = items.map(item => `
         <tr>
             <td style="${styles.td}">
@@ -165,40 +183,39 @@ export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPa
     `).join('');
 
     let instruccionesPago = '';
-    const bancoNombre = config.bancoNombre || 'Banco';
-    const bancoCbu = config.bancoCbu || 'Consultar';
-    const bancoAlias = config.bancoAlias || 'Consultar';
-    const bancoTitular = config.bancoTitular || 'Consultar';
+    const bancoNombre = config.bancoNombre || ''
+    const bancoCbu = config.bancoCbu || ''
+    const bancoAlias = config.bancoAlias || ''
+    const bancoTitular = config.bancoTitular || ''
+
+    const bancoRows = [
+        bancoNombre ? `<div style="border-bottom: 1px solid #262626; padding-bottom: 8px;">
+                <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Banco</span>
+                <span style="font-size: 16px; color: #fff; font-weight: 500;">${bancoNombre}</span>
+            </div>` : '',
+        bancoCbu ? `<div style="border-bottom: 1px solid #262626; padding-bottom: 8px;">
+                <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">CBU / CVU</span>
+                <span style="font-size: 16px; color: #fff; font-family: monospace; letter-spacing: 1px;">${bancoCbu}</span>
+            </div>` : '',
+        bancoAlias ? `<div style="border-bottom: 1px solid #262626; padding-bottom: 8px;">
+                <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Alias</span>
+                <span style="font-size: 18px; color: #22c55e; font-weight: bold;">${bancoAlias}</span>
+            </div>` : '',
+        bancoTitular ? `<div>
+                <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Titular</span>
+                <span style="font-size: 16px; color: #fff;">${bancoTitular}</span>
+            </div>` : ''
+    ].filter(Boolean).join('')
 
     if (metodoPago === 'TRANSFERENCIA') {
         instruccionesPago = `
             <div style="background-color: #161616; padding: 24px; border-radius: 12px; margin: 24px 0; border: 1px solid #333;">
                 <h3 style="margin-top:0; color: #22c55e; font-size: 18px; margin-bottom: 16px;">Datos para Transferencia</h3>
-                
                 <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="border-bottom: 1px solid #262626; padding-bottom: 8px;">
-                        <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Banco</span>
-                        <span style="font-size: 16px; color: #fff; font-weight: 500;">${bancoNombre}</span>
-                    </div>
-                    
-                    <div style="border-bottom: 1px solid #262626; padding-bottom: 8px;">
-                        <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">CBU / CVU</span>
-                        <span style="font-size: 16px; color: #fff; font-family: monospace; letter-spacing: 1px;">${bancoCbu}</span>
-                    </div>
-                    
-                    <div style="border-bottom: 1px solid #262626; padding-bottom: 8px;">
-                        <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Alias</span>
-                        <span style="font-size: 18px; color: #22c55e; font-weight: bold;">${bancoAlias}</span>
-                    </div>
-                    
-                    <div>
-                        <span style="display: block; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Titular</span>
-                        <span style="font-size: 16px; color: #fff;">${bancoTitular}</span>
-                    </div>
+                    ${bancoRows || '<p style="color:#aaa; margin:0;">Te vamos a enviar los datos por WhatsApp.</p>'}
                 </div>
-
                 <div style="margin-top: 20px; font-size: 13px; color: #888; background-color: rgba(34, 197, 94, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2);">
-                    ⚠️ <strong>Importante:</strong> Envia el comprobante por WhatsApp indicando tu número de pedido <strong>#${pedido.id.slice(-6).toUpperCase()}</strong> para agilizar el despacho.
+                    ⚠️ <strong>Importante:</strong> Enviá el comprobante por WhatsApp indicando tu número de pedido <strong>#${pedido.id.slice(-6).toUpperCase()}</strong> para agilizar el despacho.
                 </div>
             </div>
         `;
@@ -206,14 +223,14 @@ export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPa
         instruccionesPago = `
             <div style="background-color: #161616; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #333;">
                 <h3 style="margin-top:0; color: #f59e0b;">Pago en Efectivo</h3>
-                <p style="color: #ccc;">Ten listo el monto exacto al momento de la entrega o retiro para agilizar el proceso.</p>
+                <p style="color: #ccc;">Tené listo el monto exacto al momento de la entrega o retiro para agilizar el proceso.</p>
             </div>
         `;
     } else if (metodoPago === 'MERCADOPAGO') {
         instruccionesPago = `
             <div style="background-color: #161616; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #333;">
                 <h3 style="margin-top:0; color: #009ee3;">Pago por Mercado Pago</h3>
-                <p style="color: #ccc;">Tu pago está siendo procesado por Mercado Pago. Te avisaremos apenas se acredite.</p>
+                <p style="color: #ccc;">Tu pago está siendo procesado por Mercado Pago. Te avisamos apenas se acredite.</p>
             </div>
         `;
     }
@@ -240,12 +257,13 @@ export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPa
     return `
         <div style="${styles.container}">
             <div style="${styles.header}">
-                <h1 style="margin:0; color:#fff; font-size: 24px;">Confirmación de Pedido</h1>
-                <p style="margin:8px 0 0 0; color:#22c55e; font-size: 18px; font-family: monospace;">#${pedido.id.slice(-6).toUpperCase()}</p>
+                ${headerBrandHtml}
+                ${direccion ? `<p style="margin:6px 0 10px 0; color:#9ca3af; font-size:12px; letter-spacing:2px; text-transform:uppercase;">${direccion}</p>` : ''}
+                <span style="${styles.badge}">#${pedido.id.slice(-6).toUpperCase()}</span>
             </div>
             <div style="${styles.content}">
                 <p style="color:#fff; font-size: 16px; margin-top: 0;">¡Hola <strong>${pedido.nombreCliente}</strong>!</p>
-                <p style="color:#aaa;">Hemos recibido tu pedido correctamente. A continuación los detalles:</p>
+                <p style="color:#aaa;">Recibimos tu pedido correctamente. A continuación los detalles:</p>
                 
                 ${instruccionesPago}
 
@@ -287,12 +305,12 @@ export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPa
                 </div>
 
                 <div style="text-align: center; margin-top: 32px;">
-                    <a href="${process.env.NEXTAUTH_URL}/pedidos/mis-pedidos" style="${styles.button}">Ver Estado del Pedido</a>
+                    <a href="${process.env.NEXTAUTH_URL}/pedidos/mis-pedidos" style="${styles.button}">Ver estado del pedido</a>
                 </div>
             </div>
             <div style="${styles.footer}">
-                <p style="margin: 0 0 8px 0;">¿Tenés dudas? <a href="https://wa.me/${config.whatsapp || ''}" style="color: #22c55e; text-decoration: none;">Escribinos por WhatsApp</a></p>
-                <p style="margin: 0;">&copy; ${new Date().getFullYear()} ${config.nombreTienda || 'Grana 3D'}.</p>
+                ${contactLinks ? `<p style="margin: 0 0 8px 0;">${contactLinks}</p>` : ''}
+                <p style="margin: 0;">&copy; ${new Date().getFullYear()} ${brandName}.</p>
             </div>
         </div>
     `;

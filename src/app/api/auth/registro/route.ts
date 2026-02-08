@@ -31,11 +31,14 @@ export async function POST(request: NextRequest) {
         try {
             const { sendEmail } = await import('@/lib/email')
             const { getWelcomeEmailTemplate } = await import('@/lib/email-templates')
+            const { getEmailConfig } = await import('@/lib/config')
+
+            const emailConfig = await getEmailConfig()
 
             await sendEmail({
                 to: usuario.email,
-                subject: '¡Bienvenido a Grana 3D!',
-                html: getWelcomeEmailTemplate(usuario.nombre)
+                subject: `¡Bienvenido a ${emailConfig.nombreTienda}!`,
+                html: getWelcomeEmailTemplate(usuario.nombre, emailConfig)
             })
         } catch (emailError) {
             console.error('Error enviando correo de bienvenida:', emailError)
