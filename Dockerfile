@@ -38,7 +38,7 @@ RUN chmod +x ./start.sh
 
 # Instalar Prisma CLI en el runner para poder ejecutar db push
 # Esto agrega un poco de peso pero es necesario para db push en runtime
-RUN npm install prisma --save-dev
+RUN npm install prisma@6.19.2 --save-dev
 
 # Asegurar que el directorio de uploads exista y tenga permisos correctos
 RUN mkdir -p ./public/uploads && chown nextjs:nodejs ./public/uploads

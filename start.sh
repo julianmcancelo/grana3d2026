@@ -10,8 +10,8 @@ if [ -n "$DATABASE_URL" ]; then
     # pero sí en node_modules si lo instalamos en el runner.
     # O si copiamos el binario.
     
-    # Intento 1: npx prisma db push
-    npx prisma db push --accept-data-loss
+    # Intento 1: Usar binario local para asegurar versión correcta
+    ./node_modules/.bin/prisma db push --accept-data-loss
 else
     echo "⚠️ DATABASE_URL no definida. Saltando db push."
 fi
