@@ -36,13 +36,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --chown=nextjs:nodejs start.sh ./start.sh
 RUN chmod +x ./start.sh
 
-# Instalar Prisma CLI globalmente para evitar que npx descargue la v7
-RUN npm install -g prisma@6.19.2
-
-# Asegurar que el directorio de uploads exista y tenga permisos correctos
-RUN mkdir -p ./public/uploads && chown nextjs:nodejs ./public/uploads
+# Asegurar que el usuario nextjs sea dueño de todo /app para poder instalar paquetes y escribir
+RUN chown -R nextjs:nodejs /app
 
 USER nextjs
+
+# Instalar Prisma CLI localmente como usuario nextjs
+RUN npm install prisma@6.19.2 --no-save
+
 EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
