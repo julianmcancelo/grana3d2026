@@ -14,11 +14,11 @@ if [ -n "$DATABASE_URL" ]; then
     fi
 
     echo "🗃️ Sincronizando esquema de base de datos..."
-    # Forzar versión de Prisma CLI compatible con el schema
+    # Usamos explícitamente el binario local (v7)
     echo "🔎 Prisma Version:"
-    npx prisma@6.19.2 -v
-
-    if npx prisma@6.19.2 db push --accept-data-loss; then
+    ./node_modules/.bin/prisma -v
+ 
+    if ./node_modules/.bin/prisma db push --accept-data-loss; then
         echo "✅ Sincronización exitosa."
     else
         echo "❌ ERROR: Falló 'prisma db push'. Verifica 'DATABASE_URL'."
@@ -27,9 +27,9 @@ if [ -n "$DATABASE_URL" ]; then
 else
     echo "⚠️ DATABASE_URL no definida. Saltando db push."
 fi
-
+ 
 echo "🔄 Generando Prisma Client (Runtime)..."
-npx prisma@6.19.2 generate
+./node_modules/.bin/prisma generate
 
 echo "🟢 Iniciando aplicación..."
 exec node server.js
