@@ -4,6 +4,7 @@ import { Plus, Trash2, Download, Send, Search, FileText, Calculator, User, Phone
 import api from '@/lib/api'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import Swal from 'sweetalert2'
 
 interface ItemCotizacion {
     id: string
@@ -73,7 +74,7 @@ export default function CotizadorAdmin() {
 
     const guardarPresupuesto = async () => {
         if (items.length === 0) {
-            alert('Agregá al menos un item para guardar.')
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Agregá al menos un item para guardar.', background: '#1f2937', color: '#fff' })
             return
         }
         setGuardando(true)
@@ -85,11 +86,33 @@ export default function CotizadorAdmin() {
                 total,
                 nota
             })
-            alert('Presupuesto guardado con éxito')
+
             cargarHistorialPresupuestos() // Recargar lista
-        } catch (error) {
+
+            Swal.fire({
+                icon: 'success',
+                title: '¡Presupuesto Guardado!',
+                text: '¿Qué te gustaría hacer ahora?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Enviar por WhatsApp',
+                denyButtonText: 'Descargar PDF',
+                cancelButtonText: 'Cerrar',
+                confirmButtonColor: '#00AE42',
+                denyButtonColor: '#3B82F6',
+                background: '#1f2937',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    enviarWhatsapp()
+                } else if (result.isDenied) {
+                    generarPDF()
+                }
+            })
+
+        } catch (error: any) {
             console.error("Error guardando", error)
-            alert('Error al guardar el presupuesto')
+            Swal.fire({ icon: 'error', title: 'Error', text: error.response?.data?.details || 'Error al guardar el presupuesto', background: '#1f2937', color: '#fff' })
         } finally {
             setGuardando(false)
         }

@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
         })
 
         return NextResponse.json({ presupuesto })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error guardando presupuesto:', error)
-        return NextResponse.json({ error: 'Error interno al guardar' }, { status: 500 })
+        return NextResponse.json({ error: 'Error interno al guardar', details: error.message }, { status: 500 })
     }
 }
