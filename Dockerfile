@@ -36,9 +36,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --chown=nextjs:nodejs start.sh ./start.sh
 RUN chmod +x ./start.sh
 
-# Instalar Prisma CLI en el runner para poder ejecutar db push
-RUN npm install prisma@6.19.2 --save-dev && \
-    chown -R nextjs:nodejs /app/node_modules
+# Instalar Prisma CLI globalmente para evitar que npx descargue la v7
+RUN npm install -g prisma@6.19.2
 
 # Asegurar que el directorio de uploads exista y tenga permisos correctos
 RUN mkdir -p ./public/uploads && chown nextjs:nodejs ./public/uploads

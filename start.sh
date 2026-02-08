@@ -15,9 +15,8 @@ if [ -n "$DATABASE_URL" ]; then
 
     echo "🗃️ Sincronizando esquema de base de datos..."
     
-    # Intentamos ejecutar db push, si falla no detenemos el contenedor para que puedas ver los logs,
-    # pero mostramos el error claramente.
-    if npx prisma db push --accept-data-loss; then
+    # Usamos el binario global instalado en el Dockerfile
+    prisma db push --accept-data-loss; then
         echo "✅ Sincronización exitosa."
     else
         echo "❌ ERROR: Falló 'prisma db push'. Verifica 'DATABASE_URL'."
@@ -28,7 +27,7 @@ else
 fi
 
 echo "🔄 Generando Prisma Client (Runtime)..."
-npx prisma generate
+prisma generate
 
 echo "🟢 Iniciando aplicación..."
 exec node server.js
