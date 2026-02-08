@@ -27,5 +27,8 @@ else
     echo "⚠️ DATABASE_URL no definida. Saltando db push."
 fi
 
+echo "🔄 Generando Prisma Client (Runtime)..."
+npx prisma generate
+
 echo "🟢 Iniciando aplicación..."
 exec node server.js
