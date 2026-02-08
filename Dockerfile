@@ -27,10 +27,18 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copiar archivos necesarios para standalone
-# Copiar archivos necesarios para standalone
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copiar schema prisma y script de inicio
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --chown=nextjs:nodejs start.sh ./start.sh
+RUN chmod +x ./start.sh
+
+# Instalar Prisma CLI en el runner para poder ejecutar db push
+# Esto agrega un poco de peso pero es necesario para db push en runtime
+RUN npm install prisma --save-dev
 
 # Asegurar que el directorio de uploads exista y tenga permisos correctos
 RUN mkdir -p ./public/uploads && chown nextjs:nodejs ./public/uploads
@@ -40,4 +48,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["./start.sh"]
