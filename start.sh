@@ -15,19 +15,19 @@ if [ -n "$DATABASE_URL" ]; then
 
     echo "🗃️ Sincronizando esquema de base de datos..."
     # Usar prisma instalado globalmente o npx con versión fija
-    if npx prisma@6.19.2 db push --accept-data-loss; then
+    if npx prisma@6.19.2 db push --accept-data-loss --skip-generate; then
         echo "✅ Sincronización exitosa."
     else
         echo "❌ ERROR: Falló 'prisma db push'."
         echo "   Intentando fallback..."
-        prisma db push --accept-data-loss || echo "❌ Fallback también falló. Continuando..."
+        prisma db push --accept-data-loss --skip-generate || echo "❌ Fallback también falló. Continuando..."
     fi
 else
     echo "⚠️ DATABASE_URL no definida. Saltando db push."
 fi
 
-echo "🔄 Generando Prisma Client (Runtime)..."
-npx prisma@6.19.2 generate
+# echo "🔄 Generando Prisma Client (Runtime)..."
+# npx prisma@6.19.2 generate || echo "❌ Falló generación de cliente. Ignorando..."
 
 echo "🟢 Iniciando aplicación..."
 exec node server.js

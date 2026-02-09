@@ -34,15 +34,20 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Asegurar que el directorio de uploads exista y tenga permisos correctos
 RUN mkdir -p ./public/uploads && chown nextjs:nodejs ./public/uploads
+RUN chown nextjs:nodejs /app
+
+# Install Prisma CLI explicitly to avoid npx fetching incompatible latest versions
+RUN npm install -g prisma@6.19.2
+
+# Install dos2unix to fix Windows line endings
+RUN apk add --no-cache dos2unix
+
+COPY start.sh ./
+RUN dos2unix start.sh && chmod +x start.sh && chown nextjs:nodejs start.sh
 
 USER nextjs
 EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# Install Prisma CLI explicitly to avoid npx fetching incompatible latest versions
-RUN npm install -g prisma@6.19.2
-
-COPY --chown=nextjs:nodejs start.sh ./
-RUN chmod +x start.sh
-CMD ["./start.sh"]
+CMD ["/bin/sh", "start.sh"]
