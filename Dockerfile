@@ -37,17 +37,21 @@ RUN mkdir -p ./public/uploads && chown nextjs:nodejs ./public/uploads
 RUN chown nextjs:nodejs /app
 
 # Install Prisma CLI explicitly to avoid npx fetching incompatible latest versions
-RUN npm install -g prisma@6.19.2
+# Install locally to avoid EACCES in /usr/local/lib
+RUN npm install prisma@6.19.2
 
 # Install dos2unix to fix Windows line endings
 RUN apk add --no-cache dos2unix
 
 COPY start.sh ./
-RUN dos2unix start.sh && chmod +x start.sh && chown nextjs:nodejs start.sh
+RUN dos2unix start.sh && chmod +x start.sh
+
+# Ensure everything in /app is owned by nextjs (including newly installed node_modules)
+RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 EXPOSE 3000
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 CMD ["/bin/sh", "start.sh"]
