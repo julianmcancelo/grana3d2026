@@ -40,8 +40,8 @@ RUN chown nextjs:nodejs /app
 # Install locally to avoid EACCES in /usr/local/lib
 RUN npm install prisma@6.19.2
 
-# Install dos2unix to fix Windows line endings
-RUN apk add --no-cache dos2unix
+# Install dos2unix to fix Windows line endings and openssl for Prisma
+RUN apk add --no-cache dos2unix openssl
 
 COPY start.sh ./
 RUN dos2unix start.sh && chmod +x start.sh
