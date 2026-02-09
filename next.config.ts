@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone', // Necesario para Docker optimizado
-  reactCompiler: true,
+  // output: 'standalone', // Desactivado para evitar errores de bundling con Prisma
+  // reactCompiler: true, // Desactivado para evitar uso de Turbopack runtime
   images: {
     remotePatterns: [
       {

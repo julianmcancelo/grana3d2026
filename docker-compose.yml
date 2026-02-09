@@ -1,17 +1,15 @@
-version: '3.8'
+
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: jotacancelo/grana3d:latest
     container_name: grana3d-app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "80:3000"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/grana3d?schema=public
-      - NEXT_PUBLIC_API_URL=http://localhost:3000/api
+      - NEXT_PUBLIC_API_URL=http://179.43.120.168/api
       # Add other necessary env vars here, or use an .env file
     depends_on:
       db:
@@ -20,11 +18,11 @@ services:
   db:
     image: postgres:15-alpine
     container_name: grana3d-db
-    restart: unless-stopped
+    restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: grana3d
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-grana3d}
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:

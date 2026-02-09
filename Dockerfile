@@ -16,40 +16,42 @@ COPY . .
 # Generar Prisma Client
 RUN npx prisma generate
 # Build Next.js
+# Generar cliente Prisma antes del build para que Next.js lo encuentre
+RUN npx prisma generate
 RUN npm run build
 
+# Runner
 # Runner
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV production
-# Crear usuario no-root por seguridad
+
+# Crear usuario
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copiar archivos necesarios para standalone
-# Copiar archivos necesarios para standalone
+# Instalar dependencias de producción (Standard Build)
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+# Copiar build artifacts
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Asegurar que el directorio de uploads exista y tenga permisos correctos
+# Asegurar uploads
 RUN mkdir -p ./public/uploads && chown nextjs:nodejs ./public/uploads
-RUN chown nextjs:nodejs /app
 
-# Install Prisma CLI explicitly to avoid npx fetching incompatible latest versions
-# Install locally to avoid EACCES in /usr/local/lib
+# Instalar Prisma CLI para migraciones
 RUN npm install prisma@6.19.2
 
-# Install dos2unix to fix Windows line endings and openssl for Prisma
+# Scripts y utilidades
 RUN apk add --no-cache dos2unix openssl
-
 COPY start.sh ./
 RUN dos2unix start.sh && chmod +x start.sh
 
-# Ensure everything in /app is owned by nextjs (including newly installed node_modules)
 RUN chown -R nextjs:nodejs /app
-
 USER nextjs
+
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
