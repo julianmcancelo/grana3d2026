@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { CarritoProvider } from "@/context/CarritoContext";
 import { UsuarioProvider } from "@/context/UsuarioContext";
@@ -8,7 +7,6 @@ import ModalUsuario from "@/components/ModalUsuario";
 import CuponListener from "@/components/CuponListener";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://grana3d.com.ar'),
@@ -45,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased bg-[#FAFAFA] dark:bg-[#050505] transition-colors duration-300`}>
+      <body className="antialiased bg-[#FAFAFA] dark:bg-[#050505] transition-colors duration-300">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

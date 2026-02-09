@@ -14,22 +14,30 @@ if [ -n "$DATABASE_URL" ]; then
     fi
 
     echo "🗃️ Sincronizando esquema de base de datos..."
-    # Usamos explícitamente el binario local (v7)
-    echo "🔎 Prisma Version:"
-    ./node_modules/.bin/prisma -v
- 
-    if ./node_modules/.bin/prisma db push --accept-data-loss; then
-        echo "✅ Sincronización exitosa."
+
+    if [ -x "./node_modules/.bin/prisma" ]; then
+        echo "🔎 Prisma Version:"
+        ./node_modules/.bin/prisma -v
+
+        if ./node_modules/.bin/prisma db push --accept-data-loss; then
+            echo "✅ Sincronización exitosa."
+        else
+            echo "❌ ERROR: Falló 'prisma db push'. Verifica 'DATABASE_URL'."
+            echo "   Continuando inicio de aplicación (puede fallar si la BD no está lista)..."
+        fi
     else
-        echo "❌ ERROR: Falló 'prisma db push'. Verifica 'DATABASE_URL'."
-        echo "   Continuando inicio de aplicación (puede fallar si la BD no está lista)..."
+        echo "⚠️ Prisma CLI no está disponible en runtime. Saltando db push."
     fi
 else
     echo "⚠️ DATABASE_URL no definida. Saltando db push."
 fi
  
-echo "🔄 Generando Prisma Client (Runtime)..."
-./node_modules/.bin/prisma generate
+if [ -x "./node_modules/.bin/prisma" ]; then
+    echo "🔄 Generando Prisma Client (Runtime)..."
+    ./node_modules/.bin/prisma generate
+else
+    echo "ℹ️ Prisma Client ya debe venir generado desde build (standalone)."
+fi
 
 echo "🟢 Iniciando aplicación..."
 exec node server.js
