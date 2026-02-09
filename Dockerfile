@@ -6,7 +6,7 @@ FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 # Instalar dependencias (incluyendo devDeps para build)
-RUN npm ci
+RUN npm install
 
 # Builder
 FROM base AS builder
@@ -40,6 +40,6 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-COPY start.sh ./
+COPY --chown=nextjs:nodejs start.sh ./
 RUN chmod +x start.sh
 CMD ["./start.sh"]

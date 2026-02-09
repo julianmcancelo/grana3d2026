@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+export const dynamic = 'force-dynamic'
 
 // GET - Listar novedades
 export async function GET() {
