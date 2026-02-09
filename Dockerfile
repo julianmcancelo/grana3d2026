@@ -40,6 +40,9 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
+# Install Prisma CLI explicitly to avoid npx fetching incompatible latest versions
+RUN npm install -g prisma@6.19.2
+
 COPY --chown=nextjs:nodejs start.sh ./
 RUN chmod +x start.sh
 CMD ["./start.sh"]
