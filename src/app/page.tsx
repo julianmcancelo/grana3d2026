@@ -17,7 +17,19 @@ import Newsletter from '@/components/secciones/Newsletter'
 import CategoriasRapidas from '@/components/secciones/CategoriasRapidas'
 import HeroCarousel from '@/components/secciones/HeroCarousel'
 import ProductosCarousel from '@/components/secciones/ProductosCarousel'
-import { TipoSeccion } from '@prisma/client'
+// import { TipoSeccion } from '@prisma/client'
+
+// Fallback local: Para evitar error de build si el cliente prisma no está generado
+const TipoSeccion = {
+   HERO_CAROUSEL: 'HERO_CAROUSEL',
+   BANNERS_CATEGORIA: 'BANNERS_CATEGORIA',
+   PRODUCTOS_DESTACADOS: 'PRODUCTOS_DESTACADOS',
+   PRODUCTOS_OFERTA: 'PRODUCTOS_OFERTA',
+   BANNER_PROMO: 'BANNER_PROMO',
+   CATEGORIAS_RAPIDAS: 'CATEGORIAS_RAPIDAS',
+   RESENAS: 'RESENAS',
+   NEWSLETTER: 'NEWSLETTER',
+} as const
 
 // Forzar renderizado dinámico para que el modo mantenimiento se detecte al instante
 export const dynamic = 'force-dynamic'
@@ -58,7 +70,7 @@ async function getData(): Promise<DataHome> {
    ])
 
    // Parse config
-   const configMap = configRaw.reduce((acc: any, curr) => {
+   const configMap = configRaw.reduce((acc: any, curr: any) => {
       acc[curr.clave] = curr.valor
       return acc
    }, {})
@@ -215,35 +227,35 @@ export default async function HomePage() {
             <section id="contacto" className="py-24 bg-[#111] border-t border-gray-800 relative overflow-hidden">
                {/* Decorative Gradient */}
                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[#00AE42]/10 to-transparent pointer-events-none" />
-               
+
                <div className="max-w-5xl mx-auto px-4 relative z-10">
                   <div className="flex flex-col md:flex-row items-center justify-between gap-12">
                      <div className="flex-1 text-center md:text-left">
                         <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">
-                           ¿Tenés una idea? <br/>
+                           ¿Tenés una idea? <br />
                            <span className="text-[#00AE42]">La imprimimos.</span>
                         </h2>
                         <p className="text-gray-400 text-lg mb-10 max-w-xl font-light">
                            Diseño CAD, ingeniería inversa y producción en serie. Contanos tu proyecto y lo materializamos.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                            <a href="https://wa.me/5491112345678" target="_blank" className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#00AE42] text-white font-bold rounded-lg hover:bg-[#008a34] transition-all shadow-lg">
-                               <MessageCircle className="w-5 h-5" /> Cotizar Proyecto
-                            </a>
-                            <Link href="/contacto" className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-white/10 text-white font-bold rounded-lg hover:bg-white/20 transition-all border border-white/10">
-                               Ver Servicios
-                            </Link>
+                           <a href="https://wa.me/5491112345678" target="_blank" className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#00AE42] text-white font-bold rounded-lg hover:bg-[#008a34] transition-all shadow-lg">
+                              <MessageCircle className="w-5 h-5" /> Cotizar Proyecto
+                           </a>
+                           <Link href="/contacto" className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-white/10 text-white font-bold rounded-lg hover:bg-white/20 transition-all border border-white/10">
+                              Ver Servicios
+                           </Link>
                         </div>
                      </div>
-                     
+
                      {/* Abstract 3D Cube Icon */}
                      <div className="w-64 h-64 bg-gradient-to-br from-gray-800 to-black rounded-3xl border border-gray-700 shadow-2xl flex items-center justify-center transform rotate-6 hover:rotate-0 transition-all duration-500 group">
                         <div className="text-[#00AE42] group-hover:scale-110 transition-transform duration-500">
-                             <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                             </svg>
+                           <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                           </svg>
                         </div>
                      </div>
                   </div>

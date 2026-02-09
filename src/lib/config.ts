@@ -25,7 +25,7 @@ function normalizeInstagramLink(instagram?: string) {
 export async function getGlobalConfig() {
     const configRaw = await prisma.configuracion.findMany()
 
-    const configMap = configRaw.reduce((acc: any, curr) => {
+    const configMap = configRaw.reduce((acc: any, curr: any) => {
         acc[curr.clave] = parseConfigValue(curr.valor)
         return acc
     }, {})
@@ -39,7 +39,7 @@ export async function getGlobalConfig() {
 export async function getEmailConfig() {
     const configRaw = await prisma.configuracion.findMany()
 
-    const configMap = configRaw.reduce((acc: any, curr) => {
+    const configMap = configRaw.reduce((acc: any, curr: any) => {
         acc[curr.clave] = parseConfigValue(curr.valor)
         return acc
     }, {})

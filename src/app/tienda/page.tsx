@@ -17,7 +17,7 @@ async function getData() {
         prisma.configuracion.findMany()
     ])
 
-    const configMap = configRaw.reduce((acc: any, curr) => {
+    const configMap = configRaw.reduce((acc: any, curr: any) => {
         acc[curr.clave] = curr.valor
         return acc
     }, {})
@@ -38,7 +38,7 @@ export default async function TiendaPage() {
 
     return (
         <TiendaClient
-            categorias={data.categorias.map(c => ({ ...c, descripcion: c.descripcion || '', imagen: c.imagen || undefined }))}
+            categorias={data.categorias.map((c: any) => ({ ...c, descripcion: c.descripcion || '', imagen: c.imagen || undefined }))}
             productosDestacados={data.productosDestacados}
             todosProductos={data.todosProductos}
             config={data.config}

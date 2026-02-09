@@ -12,7 +12,7 @@ export async function GET() {
         })
 
         // Para cada sección, obtener datos adicionales según su tipo
-        const seccionesConDatos = await Promise.all(secciones.map(async (seccion) => {
+        const seccionesConDatos = await Promise.all(secciones.map(async (seccion: any) => {
             let datos = null
 
             switch (seccion.tipo) {
