@@ -7,6 +7,9 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import ModalUsuario from "@/components/ModalUsuario";
 import CuponListener from "@/components/CuponListener";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,11 +41,31 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+  const hostname = headersList.get("host") || "";
+
+  // Verificar Mantenimiento
+  // Solo en producción o si se fuerza para testear
+  if (!pathname.startsWith('/admin') && !pathname.startsWith('/login') && !pathname.startsWith('/api') && !hostname.startsWith('mantenimiento.')) {
+    try {
+      const maintenanceConfig = await prisma.configuracion.findUnique({
+        where: { clave: 'MAINTENANCE_MODE' }
+      });
+
+      if (maintenanceConfig?.valor === 'true') {
+        redirect('https://mantenimiento.grana3d.com.ar');
+      }
+    } catch (error) {
+      console.error("Error checking maintenance mode:", error);
+    }
+  }
+
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${inter.className} antialiased bg-[#FAFAFA] dark:bg-[#050505] transition-colors duration-300`}>

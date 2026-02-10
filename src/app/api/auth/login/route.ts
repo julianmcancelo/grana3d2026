@@ -14,10 +14,10 @@ export async function POST(request: NextRequest) {
         if (!validPassword) return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 })
 
         // Generar token con Jose
-        const token = await signToken({ 
-            id: usuario.id, 
-            email: usuario.email, 
-            rol: usuario.rol 
+        const token = await signToken({
+            id: usuario.id,
+            email: usuario.email,
+            rol: usuario.rol
         })
 
         // Crear respuesta
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
             name: 'token',
             value: token,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_API_URL?.startsWith('https'),
             sameSite: 'strict',
             maxAge: 60 * 60 * 24 * 7, // 7 días
             path: '/',

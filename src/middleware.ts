@@ -4,6 +4,30 @@ import { verifyToken } from '@/lib/auth'
 
 export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
+    const hostname = request.headers.get('host') || ''
+
+    // Headers para Server Components
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-pathname', path)
+
+    // --- LÓGICA DE SUBDOMINIOS ---
+    // 1. Mantenimiento: mantenimiento.grana3d.com.ar
+    if (hostname.startsWith('mantenimiento.')) {
+        // Permitir recursos estáticos y API, bloquear el resto
+        if (!path.startsWith('/_next') && !path.startsWith('/static') && !path.startsWith('/api')) {
+            return NextResponse.rewrite(new URL('/mantenimiento', request.url), {
+                request: { headers: requestHeaders }
+            })
+        }
+    }
+
+    // 2. Tienda: tienda.grana3d.com.ar -> Muestra /tienda en la home
+    if (hostname.startsWith('tienda.') && path === '/') {
+        return NextResponse.rewrite(new URL('/tienda', request.url), {
+            request: { headers: requestHeaders }
+        })
+    }
+    // ----------------------------
 
     // Definir rutas protegidas
     const isAdminRoute = path.startsWith('/admin')
@@ -11,7 +35,9 @@ export async function middleware(request: NextRequest) {
 
     // Si no es ruta protegida, continuar
     if (!isAdminRoute && !isAdminApiRoute) {
-        return NextResponse.next()
+        return NextResponse.next({
+            request: { headers: requestHeaders }
+        })
     }
 
     // Obtener token de cookies o header
@@ -45,7 +71,9 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/', request.url))
     }
 
-    return NextResponse.next()
+    return NextResponse.next({
+        request: { headers: requestHeaders }
+    })
 }
 
 // Configurar matcher para optimizar rendimiento

@@ -3,17 +3,42 @@
 services:
   app:
     image: jotacancelo/grana3d:latest
+    # build: .
     container_name: grana3d-app
     restart: unless-stopped
-    ports:
-      - "80:3000"
+    # ports:
+    #   - "3000:3000" # Expose internally only if needed, Nginx proxies to it via Docker network
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/grana3d?schema=public
-      - NEXT_PUBLIC_API_URL=http://179.43.120.168/api
+      - NEXT_PUBLIC_API_URL=https://grana3d.com.ar/api
       # Add other necessary env vars here, or use an .env file
+    volumes:
+      - ./uploads:/app/public/uploads
     depends_on:
       db:
         condition: service_healthy
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: grana3d-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./app.conf:/etc/nginx/conf.d/default.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    depends_on:
+      - app
+
+  certbot:
+    image: certbot/certbot
+    container_name: grana3d-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
 
   db:
     image: postgres:15-alpine

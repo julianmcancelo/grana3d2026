@@ -37,9 +37,10 @@ RUN npm ci --omit=dev
 # Copiar build artifacts
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 # Asegurar uploads
-RUN mkdir -p ./public/uploads && chown nextjs:nodejs ./public/uploads
+RUN mkdir -p ./public/uploads && chown -R nextjs:nodejs ./public/uploads
 
 # Instalar Prisma CLI para migraciones
 RUN npm install prisma@6.19.2

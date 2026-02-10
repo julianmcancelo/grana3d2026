@@ -65,6 +65,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Nombre y precio son requeridos' }, { status: 400 })
         }
 
+        if (!categoriaId) {
+            return NextResponse.json({ error: 'La categoría es requerida' }, { status: 400 })
+        }
+
         const slug = slugify(nombre) + '-' + Date.now().toString(36)
 
         const producto = await prisma.producto.create({

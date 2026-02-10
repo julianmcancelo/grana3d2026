@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // output: 'standalone', // Desactivado para evitar errores de bundling con Prisma
   // reactCompiler: true, // Desactivado para evitar uso de Turbopack runtime
+  serverExternalPackages: ['@prisma/client', 'bcryptjs'],
   images: {
     remotePatterns: [
       {
