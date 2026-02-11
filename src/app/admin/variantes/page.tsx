@@ -13,6 +13,7 @@ interface Product {
     variantes: any
     stock: number
     precio: number
+    precioMayorista: number | null
 }
 
 export default function VariantsPage() {
@@ -198,6 +199,7 @@ export default function VariantsPage() {
                                     variantes={localVariants}
                                     onChange={setLocalVariants}
                                     basePrice={selectedProduct.precio}
+                                    baseWholesalePrice={selectedProduct.precioMayorista}
                                 />
 
                                 <div className="mt-8 p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-xl flex gap-3 text-yellow-500/80 text-sm">

@@ -36,6 +36,10 @@ const estadoColores: Record<string, { bg: string, text: string, icon: any }> = {
 
 const estados = ['PENDIENTE', 'CONFIRMADO', 'ENVIADO', 'ENTREGADO', 'CANCELADO']
 
+const formatoEstado = (estado: string) => {
+    return estado.charAt(0).toUpperCase() + estado.slice(1).toLowerCase();
+}
+
 export default function PedidosAdmin() {
     const [pedidos, setPedidos] = useState<Pedido[]>([])
     const [loading, setLoading] = useState(true)
@@ -244,7 +248,7 @@ export default function PedidosAdmin() {
                             <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
                                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${estadoInfo.bg} ${estadoInfo.text}`}>
                                     <EstadoIcon className="w-3 h-3" />
-                                    {pedido.estado}
+                                    {formatoEstado(pedido.estado)}
                                 </div>
 
                                 <div className="flex items-center gap-2">
@@ -253,10 +257,10 @@ export default function PedidosAdmin() {
                                         value={pedido.estado}
                                         onChange={(e) => cambiarEstado(pedido.id, e.target.value)}
                                         disabled={actualizando === pedido.id}
-                                        className="px-3 py-2 bg-black border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-teal-500 disabled:opacity-50"
+                                        className="px-3 py-2 bg-black border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-teal-500 disabled:opacity-50 cursor-pointer"
                                     >
                                         {estados.map(e => (
-                                            <option key={e} value={e}>{e}</option>
+                                            <option key={e} value={e}>{formatoEstado(e)}</option>
                                         ))}
                                     </select>
 

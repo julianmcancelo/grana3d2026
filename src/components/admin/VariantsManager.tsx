@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, GripVertical, Settings } from 'lucide-react'
+import { Plus, Trash2, GripVertical, Settings, Image as ImageIcon, Loader2, Upload } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Swal from 'sweetalert2'
 
@@ -7,7 +7,10 @@ interface VariantOption {
     id: string
     nombre: string
     precioExtra: number // Puede ser 0 o negativo incluso
+    precioMayorista?: number // Precio final para mayoristas
     stock?: number
+    imagen?: string // URL de la imagen específica
+    color?: string // Hex code for visual swatches
 }
 
 interface VariantGroup {
@@ -21,10 +24,12 @@ interface Props {
     variantes: VariantGroup[]
     onChange: (nuevasVariantes: VariantGroup[]) => void
     basePrice: number
+    baseWholesalePrice?: number | null
 }
 
 export default function VariantsManager({ variantes, onChange, basePrice }: Props) {
     const [activeTab, setActiveTab] = useState<string | null>(null)
+    const [uploadingId, setUploadingId] = useState<string | null>(null)
 
     const addGroup = () => {
         const newGroup: VariantGroup = {
@@ -58,10 +63,16 @@ export default function VariantsManager({ variantes, onChange, basePrice }: Prop
     }
 
     const addOption = (groupId: string) => {
+        const group = variantes.find(v => v.id === groupId)
+        const isColor = group?.tipo === 'color'
+
         const newOption: VariantOption = {
             id: Math.random().toString(36).substr(2, 9),
-            nombre: 'Opción Nueva',
-            precioExtra: 0
+            nombre: isColor ? 'Nuevo Color' : 'Opción Nueva',
+            precioExtra: 0,
+            precioMayorista: 0,
+            stock: 999, // Stock default infinito/alto
+            color: isColor ? '#000000' : undefined
         }
         onChange(variantes.map(v =>
             v.id === groupId ? { ...v, opciones: [...v.opciones, newOption] } : v
@@ -87,6 +98,32 @@ export default function VariantsManager({ variantes, onChange, basePrice }: Prop
         // Calculate difference: Extra = Final - Base
         const extra = finalPrice - basePrice
         updateOption(groupId, optionId, 'precioExtra', extra)
+    }
+
+    const handleImageUpload = async (groupId: string, optionId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setUploadingId(optionId)
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+
+            if (!res.ok) throw new Error('Error subiendo imagen')
+            const data = await res.json()
+
+            updateOption(groupId, optionId, 'imagen', data.url)
+        } catch (error) {
+            console.error('Error uploading variant image:', error)
+            alert('Error al subir la imagen')
+        } finally {
+            setUploadingId(null)
+        }
     }
 
     return (
@@ -192,39 +229,108 @@ export default function VariantsManager({ variantes, onChange, basePrice }: Prop
                                                     </button>
                                                 </div>
 
-                                                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                                     {group.opciones.map(option => (
-                                                        <div key={option.id} className="flex gap-3 items-center bg-[#1a1a1a] p-2 rounded-lg border border-[#333] group hover:border-gray-600 transition-colors">
+                                                        <div key={option.id} className="grid grid-cols-[auto_auto_1fr_auto_auto] gap-3 items-center bg-[#1a1a1a] p-2 rounded-lg border border-[#333] group hover:border-gray-600 transition-colors">
+
                                                             <GripVertical className="w-4 h-4 text-gray-600 cursor-move" />
 
-                                                            <div className="flex-1">
+                                                            {/* Color Picker (Only if type is color) */}
+                                                            {group.tipo === 'color' && (
+                                                                <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[#333] shadow-inner">
+                                                                    <input
+                                                                        type="color"
+                                                                        value={option.color || '#000000'}
+                                                                        onChange={(e) => updateOption(group.id, option.id, 'color', e.target.value)}
+                                                                        className="absolute inset-0 w-[150%] h-[150%] -top-[25%] -left-[25%] p-0 border-none cursor-pointer"
+                                                                    />
+                                                                </div>
+                                                            )}
+
+                                                            <div className="flex flex-col gap-1">
                                                                 <input
                                                                     type="text"
                                                                     placeholder="Nombre Opción"
                                                                     value={option.nombre}
                                                                     onChange={(e) => updateOption(group.id, option.id, 'nombre', e.target.value)}
-                                                                    className="w-full bg-transparent border-none p-0 text-sm focus:ring-0 placeholder-gray-600"
+                                                                    className="w-full bg-transparent border-none p-0 text-sm focus:ring-0 placeholder-gray-600 font-medium"
                                                                 />
                                                             </div>
 
-                                                            <div className="flex items-center gap-2 bg-[#111] px-2 py-1 rounded border border-[#333]">
-                                                                <span className="text-xs text-[#00AE42] font-bold">$</span>
-                                                                <input
-                                                                    type="number"
-                                                                    placeholder="0"
-                                                                    value={basePrice + option.precioExtra}
-                                                                    onChange={(e) => handlePriceChange(group.id, option.id, parseFloat(e.target.value) || 0)}
-                                                                    className="w-20 bg-transparent border-none p-0 text-sm text-right focus:ring-0 font-bold"
-                                                                />
+                                                            {/* Mini Image Upload */}
+                                                            <div className="relative w-8 h-8 md:w-10 md:h-10">
+                                                                <label className={`block w-full h-full rounded-md border border-[#333] overflow-hidden cursor-pointer hover:border-gray-500 transition-colors bg-[#111] group-img`}>
+                                                                    {option.imagen ? (
+                                                                        <img src={option.imagen} alt="" className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <div className="w-full h-full flex items-center justify-center text-gray-600">
+                                                                            {uploadingId === option.id ? (
+                                                                                <Loader2 className="w-3 h-3 animate-spin" />
+                                                                            ) : (
+                                                                                <ImageIcon className="w-3 h-3 md:w-4 md:h-4" />
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        className="hidden"
+                                                                        onChange={(e) => handleImageUpload(group.id, option.id, e)}
+                                                                    />
+                                                                    {/* Overlay for change/remove */}
+                                                                    {option.imagen && (
+                                                                        <div className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                                                                            <Upload className="w-3 h-3 text-white" />
+                                                                        </div>
+                                                                    )}
+                                                                </label>
                                                             </div>
 
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeOption(group.id, option.id)}
-                                                                className="text-gray-500 hover:text-red-400 p-1"
-                                                            >
-                                                                <Trash2 className="w-3 h-3" />
-                                                            </button>
+                                                            <div className="flex items-center gap-2">
+                                                                {/* Stock Input */}
+                                                                <div className="flex items-center gap-1 bg-[#111] px-2 py-1 rounded border border-[#333] w-20" title="Stock Disponible">
+                                                                    <span className="text-[10px] text-gray-500 uppercase font-bold">Stk</span>
+                                                                    <input
+                                                                        type="number"
+                                                                        placeholder="0"
+                                                                        value={option.stock ?? ''}
+                                                                        onChange={(e) => updateOption(group.id, option.id, 'stock', parseInt(e.target.value) || 0)}
+                                                                        className="w-full bg-transparent border-none p-0 text-sm text-right focus:ring-0 font-bold"
+                                                                    />
+                                                                </div>
+
+                                                                {/* Price Input */}
+                                                                <div className="flex items-center gap-2 bg-[#111] px-2 py-1 rounded border border-[#333] w-24">
+                                                                    <span className="text-xs text-[#00AE42] font-bold">$</span>
+                                                                    <input
+                                                                        type="number"
+                                                                        placeholder="0"
+                                                                        value={basePrice + option.precioExtra}
+                                                                        onChange={(e) => handlePriceChange(group.id, option.id, parseFloat(e.target.value) || 0)}
+                                                                        className="w-full bg-transparent border-none p-0 text-sm text-right focus:ring-0 font-bold"
+                                                                    />
+                                                                </div>
+
+                                                                {/* Wholesale Price Input */}
+                                                                <div className="flex items-center gap-2 bg-[#111] px-2 py-1 rounded border border-[#333] w-24 border-l-2 border-l-purple-500">
+                                                                    <span className="text-xs text-purple-400 font-bold">$M</span>
+                                                                    <input
+                                                                        type="number"
+                                                                        placeholder="-"
+                                                                        value={option.precioMayorista || ''}
+                                                                        onChange={(e) => updateOption(group.id, option.id, 'precioMayorista', parseFloat(e.target.value) || 0)}
+                                                                        className="w-full bg-transparent border-none p-0 text-sm text-right focus:ring-0 font-bold text-purple-200"
+                                                                    />
+                                                                </div>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeOption(group.id, option.id)}
+                                                                    className="text-gray-500 hover:text-red-400 p-2 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     ))}
                                                     {group.opciones.length === 0 && (

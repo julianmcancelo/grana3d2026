@@ -14,11 +14,16 @@ import Header from '@/components/Header'
 import CarritoDrawer from '@/components/CarritoDrawer'
 import ModalUsuario from '@/components/ModalUsuario'
 import { useCarrito } from '@/context/CarritoContext'
+import { useUsuario } from '@/context/UsuarioContext'
 
 interface VariantOption {
     id: string
     nombre: string
     precioExtra: number
+    precioMayorista?: number
+    imagen?: string
+    color?: string
+    stock?: number
 }
 
 interface VariantGroup {
@@ -36,6 +41,7 @@ interface Producto {
     descripcionCorta: string
     precio: number
     precioOferta: number | null
+    precioMayorista?: number | null
     imagenes: string[]
     stock: number
     categoria: { nombre: string; slug: string }
@@ -47,6 +53,7 @@ interface Producto {
 
 export default function ProductoClient({ producto }: { producto: Producto }) {
     const { agregarProducto, abrirCarrito } = useCarrito()
+    const { usuario } = useUsuario()
 
     const [imagenActiva, setImagenActiva] = useState(0)
     const [cantidad, setCantidad] = useState(1)
@@ -71,17 +78,49 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
         setSelections(prev => ({ ...prev, [groupId]: optionId }))
     }
 
-    // Calculate Price with Modifiers
-    const basePrice = producto.precioOferta || producto.precio
+    // Determine currently displayed image
+    const getSelectedVariantImage = () => {
+        if (!producto.variantes?.groups) return null
+        for (const group of producto.variantes.groups) {
+            const selectedId = selections[group.id]
+            const option = group.opciones.find(o => o.id === selectedId)
+            if (option?.imagen) return option.imagen
+        }
+        return null
+    }
+
+    const variantImage = getSelectedVariantImage()
+    const currentImage = variantImage || producto.imagenes[imagenActiva]
+
+    // Calculate Price
+    const isMayorista = usuario?.rol === 'MAYORISTA'
+    const precioMayorista = producto.precioMayorista
+
+    let basePrice = producto.precio
+    if (isMayorista && precioMayorista) {
+        basePrice = precioMayorista
+    } else if (producto.precioOferta) {
+        basePrice = producto.precioOferta
+    }
 
     const calculateExtraPrice = () => {
         if (!producto.variantes?.groups) return 0
         let totalExtra = 0
+
+        // Base Price Reference for Difference Calculation
+        const currentBase = (isMayorista && precioMayorista) ? precioMayorista : producto.precio
+
         producto.variantes.groups.forEach(group => {
             const selectedOptionId = selections[group.id]
             const option = group.opciones.find(o => o.id === selectedOptionId)
+
             if (option) {
-                totalExtra += option.precioExtra
+                if (isMayorista && typeof option.precioMayorista === 'number' && option.precioMayorista > 0) {
+                    // Calculate extra relative to the base being used
+                    totalExtra += (option.precioMayorista - currentBase)
+                } else {
+                    totalExtra += option.precioExtra
+                }
             }
         })
         return totalExtra
@@ -90,7 +129,27 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
     const extraPrice = calculateExtraPrice()
     const finalPrice = basePrice + extraPrice
 
-    const tieneOferta = producto.precioOferta && producto.precioOferta < producto.precio
+    // Detect if any wholesale pricing is active (base or variant level)
+    const hayPrecioMayorista = isMayorista && (!!precioMayorista || producto.variantes?.groups?.some(g => {
+        const selId = selections[g.id]
+        const op = g.opciones.find(o => o.id === selId)
+        return op && typeof op.precioMayorista === 'number' && op.precioMayorista > 0
+    }))
+
+    // Calculate what the retail price would be for comparison
+    const precioRetail = (() => {
+        if (!hayPrecioMayorista) return 0
+        let retailBase = producto.precioOferta || producto.precio
+        let retailExtra = 0
+        producto.variantes?.groups?.forEach(g => {
+            const selId = selections[g.id]
+            const op = g.opciones.find(o => o.id === selId)
+            if (op) retailExtra += op.precioExtra
+        })
+        return retailBase + (retailExtra || 0)
+    })()
+
+    const tieneOferta = !isMayorista && producto.precioOferta && producto.precioOferta < producto.precio
     const descuento = tieneOferta ? Math.round((1 - producto.precioOferta! / producto.precio) * 100) : 0
 
     const handleAgregar = () => {
@@ -105,7 +164,7 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
             id: producto.id,
             nombre: producto.nombre,
             precio: finalPrice,
-            imagen: producto.imagenes[0] || '',
+            imagen: variantImage || producto.imagenes[0] || '', // Use variant image in cart too
             variante: variantDetails,
             cantidad
         })
@@ -146,10 +205,10 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                         -{descuento}% OFF
                                     </div>
                                 )}
-                                {producto.imagenes[imagenActiva] ? (
+                                {currentImage ? (
                                     <div className="w-full h-full relative">
                                         <Image
-                                            src={producto.imagenes[imagenActiva]}
+                                            src={currentImage}
                                             alt={producto.nombre}
                                             fill
                                             priority
@@ -214,13 +273,27 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                         {tieneOferta && (
                                             <span className="text-lg text-gray-400 line-through decoration-2 decoration-red-500/50">${(producto.precio + extraPrice).toLocaleString('es-AR')}</span>
                                         )}
+                                        {hayPrecioMayorista && precioRetail > finalPrice && (
+                                            <span className="text-lg text-gray-400 line-through decoration-2 decoration-purple-500/50">${precioRetail.toLocaleString('es-AR')}</span>
+                                        )}
                                     </div>
                                     {tieneOferta && (
                                         <div className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse shadow-lg shadow-red-500/20">
                                             OFERTA FLASH
                                         </div>
                                     )}
+                                    {hayPrecioMayorista && (
+                                        <div className="bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-purple-500/20 flex items-center gap-1">
+                                            <Package className="w-3 h-3" /> PRECIO MAYORISTA
+                                        </div>
+                                    )}
                                 </div>
+                                {hayPrecioMayorista && (
+                                    <div className="mb-4 p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center gap-2 text-sm">
+                                        <Package className="w-4 h-4 text-purple-400 shrink-0" />
+                                        <span className="text-purple-300 font-medium">Estás viendo el <strong className="text-purple-200">precio exclusivo mayorista</strong>. El precio de lista es <span className="line-through">${precioRetail.toLocaleString('es-AR')}</span></span>
+                                    </div>
+                                )}
 
                                 {producto.esPreventa && (
                                     <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start gap-3">
@@ -257,31 +330,80 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                                     onChange={(e) => handleSelectionChange(group.id, e.target.value)}
                                                     className="w-full bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-[#00AE42] focus:border-[#00AE42] block w-full p-2.5"
                                                 >
-                                                    {group.opciones.map(op => (
-                                                        <option key={op.id} value={op.id}>
-                                                            {op.nombre} {op.precioExtra !== 0 ? `(${(basePrice + op.precioExtra).toLocaleString('es-AR')})` : ''}
-                                                        </option>
-                                                    ))}
+                                                    {group.opciones.map(op => {
+                                                        const isWholesaleOption = isMayorista && typeof op.precioMayorista === 'number' && op.precioMayorista > 0
+                                                        const displayPrice = isWholesaleOption
+                                                            ? op.precioMayorista
+                                                            : (basePrice + op.precioExtra)
+
+                                                        return (
+                                                            <option key={op.id} value={op.id} disabled={op.stock === 0}>
+                                                                {op.nombre} {displayPrice !== basePrice ? `(${(displayPrice!).toLocaleString('es-AR')})` : ''}
+                                                                {op.stock === 0 ? ' (Sin Stock)' : ''}
+                                                            </option>
+                                                        )
+                                                    })}
                                                 </select>
                                             </div>
-                                        ) : (
+                                        ) : group.tipo === 'color' ? (
                                             <div className="flex flex-wrap gap-3">
                                                 {group.opciones.map(op => {
                                                     const isSelected = selections[group.id] === op.id
-                                                    const optionPrice = basePrice + op.precioExtra
+                                                    const isOutOfStock = op.stock === 0
                                                     return (
                                                         <button
                                                             key={op.id}
-                                                            onClick={() => handleSelectionChange(group.id, op.id)}
+                                                            onClick={() => !isOutOfStock && handleSelectionChange(group.id, op.id)}
+                                                            disabled={isOutOfStock}
+                                                            title={`${op.nombre}${isOutOfStock ? ' (Sin Stock)' : ''}`}
+                                                            className={`w-10 h-10 rounded-full border-2 transition-all relative flex items-center justify-center ${isSelected
+                                                                ? 'border-[#00AE42] ring-2 ring-[#00AE42]/20 scale-110'
+                                                                : 'border-transparent hover:scale-105'
+                                                                } ${isOutOfStock ? 'opacity-50 cursor-not-allowed grayscale' : 'cursor-pointer'}`}
+                                                            style={{ backgroundColor: op.color || '#000' }}
+                                                        >
+                                                            {/* Cross for out of stock */}
+                                                            {isOutOfStock && (
+                                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                                    <div className="w-full h-0.5 bg-white/50 rotate-45 transform" />
+                                                                    <div className="w-full h-0.5 bg-white/50 -rotate-45 transform absolute" />
+                                                                </div>
+                                                            )}
+                                                            {/* Selection Check */}
+                                                            {isSelected && !isOutOfStock && (
+                                                                <Check className="w-5 h-5 text-white drop-shadow-md" strokeWidth={3} />
+                                                            )}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        ) : (
+                                            // Chips / Buttons
+                                            <div className="flex flex-wrap gap-3">
+                                                {group.opciones.map(op => {
+                                                    const isSelected = selections[group.id] === op.id
+
+                                                    const isWholesaleOption = isMayorista && typeof op.precioMayorista === 'number' && op.precioMayorista > 0
+                                                    const optionPrice = isWholesaleOption
+                                                        ? op.precioMayorista
+                                                        : (basePrice + op.precioExtra)
+
+                                                    const isOutOfStock = op.stock === 0
+
+                                                    return (
+                                                        <button
+                                                            key={op.id}
+                                                            onClick={() => !isOutOfStock && handleSelectionChange(group.id, op.id)}
+                                                            disabled={isOutOfStock}
                                                             className={`h-10 px-4 rounded-lg font-bold text-sm transition-all border-2 flex items-center justify-center min-w-[3rem] ${isSelected
                                                                 ? 'border-[#00AE42] text-[#00AE42] bg-[#00AE42]/5 shadow-[0_0_15px_rgba(0,174,66,0.2)]'
                                                                 : 'border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-400 hover:scale-105'
-                                                                }`}
+                                                                } ${isOutOfStock ? 'opacity-50 cursor-not-allowed line-through bg-gray-100 dark:bg-gray-800' : ''}`}
                                                         >
                                                             {op.nombre}
-                                                            {op.precioExtra !== 0 && (
+                                                            {optionPrice !== basePrice && (
                                                                 <span className="text-xs ml-1 opacity-70">
-                                                                    ${optionPrice.toLocaleString('es-AR')}
+                                                                    ${optionPrice!.toLocaleString('es-AR')}
                                                                 </span>
                                                             )}
                                                         </button>
@@ -297,22 +419,62 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                     <span className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Cantidad</span>
                                     <div className="flex items-center justify-between bg-gray-50 dark:bg-[#1a1a1a] p-2 rounded-xl border border-gray-200 dark:border-gray-800">
                                         <div className="flex items-center gap-4">
-                                            <button onClick={() => setCantidad(Math.max(1, cantidad - 1))} className="w-8 h-8 flex items-center justify-center bg-white dark:bg-[#222] rounded-lg shadow-sm hover:scale-110 transition-transform text-gray-500">
+                                            <button
+                                                onClick={() => setCantidad(Math.max(1, cantidad - 1))}
+                                                className="w-8 h-8 flex items-center justify-center bg-white dark:bg-[#222] rounded-lg shadow-sm hover:scale-110 transition-transform text-gray-500 disabled:opacity-50"
+                                                disabled={cantidad <= 1}
+                                            >
                                                 <Minus className="w-4 h-4" />
                                             </button>
                                             <span className="w-4 text-center font-black text-lg text-gray-900 dark:text-white">{cantidad}</span>
-                                            <button onClick={() => setCantidad(cantidad + 1)} className="w-8 h-8 flex items-center justify-center bg-white dark:bg-[#222] rounded-lg shadow-sm hover:scale-110 transition-transform text-gray-500">
-                                                <Plus className="w-4 h-4" />
-                                            </button>
+                                            {(() => {
+                                                // Calculate max available stock for current selection
+                                                // Find the lowest stock among selected variants
+                                                let maxStock = producto.stock
+                                                producto.variantes?.groups?.forEach(group => {
+                                                    const selectedId = selections[group.id]
+                                                    const option = group.opciones.find(o => o.id === selectedId)
+                                                    if (option?.stock !== undefined) {
+                                                        // A value of 0 means NO stock.
+                                                        // If stock is tracked per variant, we should use it.
+                                                        // If option.stock is strictly defined, use it.
+                                                        maxStock = Math.min(maxStock, option.stock)
+                                                    }
+                                                })
+
+                                                const hasStock = maxStock > 0
+
+                                                return (
+                                                    <button
+                                                        onClick={() => setCantidad(Math.min(maxStock, cantidad + 1))}
+                                                        className="w-8 h-8 flex items-center justify-center bg-white dark:bg-[#222] rounded-lg shadow-sm hover:scale-110 transition-transform text-gray-500 disabled:opacity-50"
+                                                        disabled={!hasStock || cantidad >= maxStock}
+                                                    >
+                                                        <Plus className="w-4 h-4" />
+                                                    </button>
+                                                )
+                                            })()}
                                         </div>
-                                        {producto.stock > 0 ? (
-                                            <div className="flex items-center gap-2 text-[#00AE42] text-[10px] font-bold uppercase tracking-wide px-3">
-                                                <div className="w-2 h-2 rounded-full bg-[#00AE42] animate-pulse" />
-                                                Stock Disponible
-                                            </div>
-                                        ) : (
-                                            <div className="text-red-500 text-[10px] font-bold uppercase tracking-wide px-3">Sin Stock</div>
-                                        )}
+                                        {(() => {
+                                            // Re-calculate to show stock label
+                                            let maxStock = producto.stock
+                                            producto.variantes?.groups?.forEach(group => {
+                                                const selectedId = selections[group.id]
+                                                const option = group.opciones.find(o => o.id === selectedId)
+                                                if (option?.stock !== undefined) {
+                                                    maxStock = Math.min(maxStock, option.stock)
+                                                }
+                                            })
+
+                                            return maxStock > 0 ? (
+                                                <div className="flex items-center gap-2 text-[#00AE42] text-[10px] font-bold uppercase tracking-wide px-3">
+                                                    <div className="w-2 h-2 rounded-full bg-[#00AE42] animate-pulse" />
+                                                    Stock: {maxStock}
+                                                </div>
+                                            ) : (
+                                                <div className="text-red-500 text-[10px] font-bold uppercase tracking-wide px-3">Sin Stock</div>
+                                            )
+                                        })()}
                                     </div>
                                 </div>
                             </div>

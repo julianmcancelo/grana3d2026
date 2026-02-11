@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { headers } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { crearPreferencia } from '@/lib/mercadopago'
+import { getGlobalConfig } from '@/lib/config'
 
 // Definición de tipos para los datos que recibimos del cliente
 interface ItemEntrada {
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
 
         // 1. Intentar obtener el usuario autenticado (si existe)
         let usuarioId = null
+        let esMayorista = false
         try {
             const authHeader = (await headers()).get('authorization')
             if (authHeader) {
@@ -52,6 +54,14 @@ export async function POST(request: NextRequest) {
                 const payload = await verifyToken(token)
                 if (payload) {
                     usuarioId = String(payload.id)
+                    // Fetch user role immediately for price calculation
+                    const usuario = await prisma.usuario.findUnique({
+                        where: { id: usuarioId },
+                        select: { rol: true }
+                    })
+                    if (usuario?.rol === 'MAYORISTA') {
+                        esMayorista = true
+                    }
                 }
             }
         } catch (e) {
@@ -65,7 +75,7 @@ export async function POST(request: NextRequest) {
         for (const item of items) {
             const producto = await prisma.producto.findUnique({
                 where: { id: item.id },
-                select: { id: true, nombre: true, precio: true, precioOferta: true, stock: true }
+                select: { id: true, nombre: true, precio: true, precioOferta: true, precioMayorista: true, stock: true, sumaCupoMayorista: true, variantes: true }
             })
 
             if (!producto) {
@@ -76,7 +86,93 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ error: `Stock insuficiente para el producto: ${producto.nombre}` }, { status: 409 })
             }
 
-            const precioFinal = producto.precioOferta || producto.precio
+            // --- CÁLCULO DE PRECIO (Backend Authority) ---
+
+            // 1. Determinar el Precio Base (Retail vs Mayorista)
+            let basePrice = producto.precioOferta || producto.precio
+            if (esMayorista && producto.precioMayorista) {
+                basePrice = producto.precioMayorista
+            }
+
+            // 2. Calcular Extras por Variantes
+            let variantPriceDelta = 0
+
+            // Analizamos la variante seleccionada si existe
+            // item.variante suele ser un string (ej: "Color: Rojo, Talle: L") o un objeto
+            // Pero para el precio, necesitamos saber QUÉ opción eligió.
+            // Asumimos que el cliente manda algo que nos permite identificar la opción.
+            // NOTA CRÍTICA: El frontend actual manda un string combinado o un objeto. 
+            // Si el carrito guarda las opciones seleccionadas por ID de grupo, deberíamos recibir eso.
+            // Revisando CarritoContext: guarda "variante" como string. 
+            // Revisando ProductoClient: construye el string de variante visualmente.
+            // Para seguridad real, deberíamos recibir los IDs de las opciones seleccionadas.
+            // POR AHORA: Con el sistema actual, el backend NO tiene forma fácil de validar el precio de la variante 
+            // porque item.variante es solo texto plano (ej. "Talle: XL").
+            // SIN EMBARGO, el usuario espera que el total coincida.
+            // SOLUCIÓN TEMPORAL ROBUSTA: 
+            // Confiamos en el "precio" unitario que manda el frontend PERO lo validamos contra un rango razonable?
+            // NO, eso es inseguro.
+            // Debemos intentar parsear el string o asumir que el precio base es lo que cobramos 
+            // y que los extras están implícitos? No.
+
+            // REVISIÓN ESTRATEGIA: 
+            // El `item` que viene del frontend en `POST /api/pedidos` tiene: id, cantidad, variante (string).
+            // NO TIENE los IDs de opciones. Esto es una deuda técnica del proyecto original.
+            // Para "impactar" el precio mayorista correctamente sin romper todo:
+            // Usaremos el precio base correcto (Mayorista vs Retail) que ya calculamos arriba.
+            // Si hay variantes, lamentablemente con la arquitectura actual, el backend no puede re-calcular 
+            // el extra exacto sin los IDs de las opciones.
+
+            // PROPUESTA DE MEJORA INMEDIATA (FIX):
+            // Si el sistema no manda opciones IDs, no podemos validar variantes en backend.
+            // Pero SÍ podemos validar el precio base.
+            // Si el frontend manda un `item.precio` (que sí lo tiene el item del carrito), podríamos usarlo 
+            // PERO validando que no sea menor al precio base que nos corresponde.
+
+            // CAMBIO: Vamos a confiar parcialmente en el frontend para los EXTRAS de variantes por ahora
+            // (ya que refactorizar todo el carrito para mandar IDs de opciones es muy riesgoso ahora),
+            // PERO vamos a forzar la BASE correcta.
+
+            // MEJOR AÚN: Vamos a calcular el precio final así:
+            // Precio = BaseCorrecta (DB)
+            // Si el item tiene un precio unitario que viene del front, calculamos la diferencia (extra).
+            // PrecioFinal = BaseCorrecta + (PrecioFront - BaseFront)
+            // Esto asume que BaseFront era correcta.
+
+            // HAGÁMOSLO SIMPLE Y SEGURO PARA V1.2:
+            // Usamos Precio Base Correcto (Mayorista o Oferta).
+            // Si hay variantes en el JSON del producto, intentamos matchear por texto.
+            // El texto viene tipo "Talle: XL, Color: Rojo".
+            // Iteramos las opciones del producto y vemos si el nombre aparece en el string.
+
+            if (item.variante && typeof item.variante === 'string' && producto.variantes) {
+                const variantesJson = producto.variantes as any
+                if (variantesJson.groups) {
+                    variantesJson.groups.forEach((group: any) => {
+                        group.opciones.forEach((op: any) => {
+                            // Si el string de variante contiene el nombre de la opción (ej "XL")
+                            // Es un matcheo 'loose' pero efectivo para este string format
+                            // Riesgo: "Azul" matchea "Azul Oscuro". 
+                            // Checkeamos con ": Nombre" o al final de string
+                            const regex = new RegExp(`(:\\s*|\\s+)${op.nombre}(\\s*,|$)`, 'i')
+                            if (regex.test(item.variante)) {
+                                // Encontramos opción. Aplicamos lógica de precio
+                                if (esMayorista && typeof op.precioMayorista === 'number' && op.precioMayorista > 0) {
+                                    // Override completo del precio para esta opción
+                                    // La lógica de frontend para wholesale override es:
+                                    // Extra = OptionWholesale - BaseWholesale
+                                    const extra = op.precioMayorista - basePrice
+                                    variantPriceDelta += extra
+                                } else {
+                                    variantPriceDelta += op.precioExtra
+                                }
+                            }
+                        })
+                    })
+                }
+            }
+
+            const precioFinal = basePrice + variantPriceDelta
             const subtotal = precioFinal * item.cantidad
 
             totalCalculado += subtotal
@@ -146,6 +242,99 @@ export async function POST(request: NextRequest) {
             }
         })
 
+        // Variables para la sincronización con Sheets (scope superior)
+        let unidadesEligiblesSheet = 0
+        let esMayoristaSheet = false
+
+        // --- LÓGICA MAYORISTA ---
+        try {
+            if (usuarioId) {
+                // Obtener configuración global
+                const { mayoristaMinimoInicial, mayoristaMinimoMantenimiento } = await getGlobalConfig()
+
+                // 1. Calcular unidades elegibles (sumaCupoMayorista)
+                let unidadesEligibles = 0
+                // Usamos itemsProcesados que ya tiene la info básica, pero necesitamos el flag sumaCupoMayorista.
+                // Lo consultamos de nuevo para asegurar consistencia.
+                for (const item of itemsProcesados) {
+                    const prod = await prisma.producto.findUnique({
+                        where: { id: item.productoId },
+                        select: { sumaCupoMayorista: true }
+                    })
+                    if (prod?.sumaCupoMayorista) {
+                        unidadesEligibles += item.cantidad
+                    }
+                }
+
+                if (unidadesEligibles > 0) {
+                    // Actualizar variable para Sheets
+                    unidadesEligiblesSheet = unidadesEligibles
+
+                    if (unidadesEligibles > 0) {
+                        // Actualizar variable para Sheets
+                        unidadesEligiblesSheet = unidadesEligibles
+
+                        // Ya tenemos esMayorista calculado arriba
+                        esMayoristaSheet = esMayorista
+
+                        // Fetch completo del usuario solo si necesitamos actualizarlo (para obtener datos viejos)
+                        // O usamos update直接 con condiciones? Mejor leer para lógica de negocio compleja
+                        const usuario = await prisma.usuario.findUnique({ where: { id: usuarioId } })
+
+                        if (usuario) {
+                            const now = new Date()
+                            // Vencimiento: 10 del mes siguiente
+                            const nextMonth10th = new Date(now.getFullYear(), now.getMonth() + 1, 10)
+
+                            if (!esMayorista) {
+                                // Convertir a Mayorista si supera MÍNIMO INICIAL
+                                if (unidadesEligibles >= mayoristaMinimoInicial) {
+                                    await prisma.usuario.update({
+                                        where: { id: usuarioId },
+                                        data: {
+                                            rol: 'MAYORISTA',
+                                            estadoMayorista: 'VIGENTE',
+                                            fechaVencimientoMayorista: nextMonth10th,
+                                            unidadesMesActual: unidadesEligibles // Arrancamos con lo comprado
+                                        }
+                                    })
+                                    // TODO: Email de bienvenida a mayorista
+                                }
+                            } else {
+                                // Ya es mayorista: Sumar al cupo mensual y verificar MANTENIMIENTO
+                                const estaVencido = usuario.estadoMayorista === 'VENCIDO' || (usuario.fechaVencimientoMayorista && usuario.fechaVencimientoMayorista < now)
+
+                                let nuevoEstado = usuario.estadoMayorista
+                                let nuevaFechaVencimiento = usuario.fechaVencimientoMayorista
+                                const nuevasUnidades = (usuario.unidadesMesActual || 0) + unidadesEligibles
+
+                                // Si cumple el cupo de mantenimiento
+                                if (nuevasUnidades >= mayoristaMinimoMantenimiento) {
+                                    nuevoEstado = 'VIGENTE'
+                                    // Si estaba vencido o su vencimiento es anterior al próximo mes, renovamos
+                                    if (estaVencido || !usuario.fechaVencimientoMayorista || usuario.fechaVencimientoMayorista < nextMonth10th) {
+                                        nuevaFechaVencimiento = nextMonth10th
+                                    }
+                                }
+
+                                await prisma.usuario.update({
+                                    where: { id: usuarioId },
+                                    data: {
+                                        unidadesMesActual: nuevasUnidades,
+                                        estadoMayorista: nuevoEstado,
+                                        fechaVencimientoMayorista: nuevaFechaVencimiento
+                                    }
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (errMayorista) {
+            console.error('Error procesando lógica mayorista:', errMayorista)
+        }
+        // -----------------------
+
         if (cuponId) {
             try {
                 await prisma.usoCupon.create({
@@ -207,8 +396,14 @@ export async function POST(request: NextRequest) {
         }, { status: 201 })
 
         // Sincronizar con Google Sheets en segundo plano (sin await para no bloquear)
-        import('@/lib/googleSheets').then(({ syncOrderToSheet }) => {
-            syncOrderToSheet(pedido)
+        import('@/lib/googleSheets').then(({ syncOrderToSheet, syncEstadisticas }) => {
+            syncOrderToSheet(pedido, {
+                esMayorista: esMayoristaSheet,
+                unidadesCupo: unidadesEligiblesSheet
+            }).then(() => {
+                // Actualizar estadísticas después de sincronizar la venta
+                syncEstadisticas()
+            })
         }).catch(err => console.error('Error background sync sheet:', err))
 
     } catch (error) {

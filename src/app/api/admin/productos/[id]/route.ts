@@ -65,6 +65,15 @@ export async function PUT(
             data: dataToUpdate
         })
 
+        // Sync with Google Sheets
+        try {
+            const allProducts = await prisma.producto.findMany({ include: { categoria: true } })
+            const { syncProducts } = await import('@/lib/googleSheets')
+            await syncProducts(allProducts)
+        } catch (e) {
+            console.error('Error syncing products to sheets:', e)
+        }
+
         return NextResponse.json({ producto })
     } catch (error) {
         console.error('Error actualizando producto:', error)

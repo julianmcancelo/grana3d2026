@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { updateConfig } from "./actions"
-import { Loader2, Save } from "lucide-react"
+import { Loader2, Save, Package } from "lucide-react"
 import Swal from "sweetalert2"
 
 type ConfigData = Record<string, string>
@@ -69,6 +69,29 @@ export default function ConfigForm({ initialData }: { initialData: ConfigData })
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field label="WhatsApp (Solo números)" name="whatsapp" defaultValue={initialData.whatsapp} placeholder="54911..." />
                     <Field label="Instagram (Usuario)" name="instagram" defaultValue={initialData.instagram} placeholder="@grana3d" />
+                </div>
+            </div>
+
+            {/* Configuración Mayorista */}
+            <div className="bg-[#111] border border-gray-800 rounded-xl p-6">
+                <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                    <Package className="w-5 h-5 text-purple-500" /> Configuración Mayorista
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Field
+                        label="Mínimo Inicial (Unidades)"
+                        name="mayorista_minimo_inicial"
+                        type="number"
+                        defaultValue={initialData.mayorista_minimo_inicial || '150'}
+                        placeholder="150"
+                    />
+                    <Field
+                        label="Mínimo Mantenimiento (Unidades)"
+                        name="mayorista_minimo_mantenimiento"
+                        type="number"
+                        defaultValue={initialData.mayorista_minimo_mantenimiento || '75'}
+                        placeholder="75"
+                    />
                 </div>
             </div>
 

@@ -18,6 +18,17 @@ model Usuario {
   updatedAt DateTime @updatedAt
   pedidos   Pedido[]
   direcciones Direccion[]
+  
+  // Mayorista Fields
+  unidadesMesActual    Int       @default(0) // Contador mensual (resetear el día 10)
+  fechaVencimientoMayorista DateTime? // Fecha de vencimiento de status
+  estadoMayorista      EstadoMayorista @default(PENDIENTE) 
+}
+
+enum EstadoMayorista {
+  PENDIENTE
+  VIGENTE
+  VENCIDO
 }
 
 model Direccion {
@@ -58,6 +69,7 @@ model Producto {
   descripcion  String
   precio       Float
   precioOferta Float?
+  precioMayorista Float?
   imagen       String?
   imagenes     String[]
   categoriaId  String
@@ -70,6 +82,7 @@ model Producto {
   esPreventa        Boolean @default(false)
   fechaLlegada      DateTime? // Fecha estimada si es preventa
   tiempoProduccion  String?   // Ej: "48-72 hs", "10 días hábiles"
+  sumaCupoMayorista Boolean @default(false) // Si cuenta para las 150/75 unidades
 
   orden        Int       @default(0)
   createdAt    DateTime  @default(now())
@@ -282,6 +295,7 @@ enum MetodoPago {
 enum Rol {
   ADMIN
   CLIENTE
+  MAYORISTA
 }
 
 enum TipoCupon {

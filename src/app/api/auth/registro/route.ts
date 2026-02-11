@@ -68,6 +68,11 @@ export async function POST(request: NextRequest) {
             // No fallamos el registro si falla el correo, solo lo logueamos
         }
 
+        // Sync nuevo cliente a Google Sheets (background, non-blocking)
+        import('@/lib/googleSheets').then(({ appendClienteToSheet }) => {
+            appendClienteToSheet(usuario)
+        }).catch(err => console.error('Error sync cliente to sheets:', err))
+
         const response = NextResponse.json({
             token,
             usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }

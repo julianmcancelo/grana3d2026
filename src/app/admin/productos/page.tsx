@@ -23,6 +23,7 @@ interface Producto {
     slug: string
     precio: number
     precioOferta?: number
+    precioMayorista?: number
     stock: number
     imagen?: string
     imagenes: string[]
@@ -56,6 +57,7 @@ function ProductosContent() {
         descripcion: '',
         precio: '',
         precioOferta: '',
+        precioMayorista: '',
         stock: '',
         categoriaId: '',
         imagen: '',
@@ -65,6 +67,7 @@ function ProductosContent() {
         esPreventa: false,
         fechaLlegada: '',
         tiempoProduccion: '',
+        sumaCupoMayorista: false,
         variantes: [] as any[] // Array de grupos de variantes
     })
 
@@ -101,6 +104,7 @@ function ProductosContent() {
                 descripcion: '',
                 precio: producto.precio.toString(),
                 precioOferta: producto.precioOferta?.toString() || '',
+                precioMayorista: producto.precioMayorista?.toString() || '',
                 stock: producto.stock.toString(),
                 categoriaId: '',
                 imagen: producto.imagen || '',
@@ -110,6 +114,7 @@ function ProductosContent() {
                 esPreventa: producto.esPreventa || false,
                 fechaLlegada: producto.fechaLlegada ? new Date(producto.fechaLlegada).toISOString().split('T')[0] : '',
                 tiempoProduccion: producto.tiempoProduccion || '',
+                sumaCupoMayorista: (producto as any).sumaCupoMayorista || false,
                 variantes: (producto.variantes as any)?.groups || []
             })
         } else {
@@ -119,6 +124,7 @@ function ProductosContent() {
                 descripcion: '',
                 precio: '',
                 precioOferta: '',
+                precioMayorista: '',
                 stock: '',
                 categoriaId: categorias[0]?.id || '',
                 imagen: '',
@@ -128,6 +134,7 @@ function ProductosContent() {
                 esPreventa: false,
                 fechaLlegada: '',
                 tiempoProduccion: '',
+                sumaCupoMayorista: false,
                 variantes: []
             })
         }
@@ -153,6 +160,7 @@ function ProductosContent() {
                 descripcion: form.descripcion || 'Producto sin descripción',
                 precio: parseFloat(form.precio),
                 precioOferta: form.precioOferta ? parseFloat(form.precioOferta) : null,
+                precioMayorista: form.precioMayorista ? parseFloat(form.precioMayorista) : null,
                 stock: parseInt(form.stock) || 0,
                 categoriaId: form.categoriaId,
                 imagen: imagenPrincipal,
@@ -162,6 +170,7 @@ function ProductosContent() {
                 esPreventa: form.esPreventa,
                 fechaLlegada: form.fechaLlegada ? new Date(form.fechaLlegada) : null,
                 tiempoProduccion: form.tiempoProduccion || null,
+                sumaCupoMayorista: form.sumaCupoMayorista,
                 variantes: { groups: form.variantes } // Wrap in object as expected
             }
 
@@ -221,22 +230,22 @@ function ProductosContent() {
                 <div className="flex gap-2">
                     <button
                         onClick={async () => {
-                            if (!confirm('¿Sincronizar productos con Google Sheets? Esto sobrescribirá la hoja.')) return
-                            const { syncToSheet } = await import('./importar/actions')
+                            if (!confirm('¿Sincronizar TODO con Google Sheets?\n\n• Productos\n• Clientes\n• Cotizaciones\n• Estadísticas\n\nEsto actualizará todas las hojas.')) return
                             try {
-                                const res = await syncToSheet()
-                                if (res.success) {
-                                    alert(`Sincronizados ${res.count} productos`)
+                                const res = await fetch('/api/admin/sync-sheets', { method: 'POST' })
+                                const data = await res.json()
+                                if (data.exito) {
+                                    alert(`✅ Sincronización completa:\n\n${data.detalles.productos}\n${data.detalles.clientes}\n${data.detalles.cotizaciones}\nEstadísticas: ${data.detalles.estadisticas}`)
                                 } else {
-                                    alert('Error: ' + res.message)
+                                    alert('❌ Error: ' + (data.error || 'Error desconocido'))
                                 }
                             } catch (e) {
-                                alert('Error al sincronizar')
+                                alert('❌ Error al sincronizar con Google Sheets')
                             }
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors border border-green-500/20"
                     >
-                        <Upload className="w-5 h-5 rotate-180" /> Sync Sheets
+                        <Upload className="w-5 h-5 rotate-180" /> Sync Todo a Sheets
                     </button>
                     <Link
                         href="/admin/productos/importar"
@@ -414,7 +423,7 @@ function ProductosContent() {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-800">
+                                    <div className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-800">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-400 mb-1">Precio *</label>
                                             <input
@@ -432,6 +441,16 @@ function ProductosContent() {
                                                 value={form.precioOferta}
                                                 onChange={(e) => setForm({ ...form, precioOferta: e.target.value })}
                                                 className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-emerald-400 mb-1">Precio Mayorista</label>
+                                            <input
+                                                type="number"
+                                                value={form.precioMayorista}
+                                                onChange={(e) => setForm({ ...form, precioMayorista: e.target.value })}
+                                                className="w-full px-4 py-3 bg-black border border-emerald-500/30 rounded-xl text-white focus:outline-none focus:border-emerald-500"
+                                                placeholder="Opcional"
                                             />
                                         </div>
                                     </div>

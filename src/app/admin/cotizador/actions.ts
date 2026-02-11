@@ -28,6 +28,16 @@ export async function convertirPresupuestoAPedido(presupuesto: any) {
         })
 
         revalidatePath('/admin/pedidos')
+
+        // Sync cotización a Google Sheets (background)
+        import('@/lib/googleSheets').then(({ appendCotizacionToSheet }) => {
+            appendCotizacionToSheet({
+                ...presupuesto,
+                id: nuevoPedido.id,
+                estado: 'CONVERTIDO'
+            })
+        }).catch(err => console.error('Error sync cotización to sheets:', err))
+
         return { success: true, pedidoId: nuevoPedido.id, message: 'Pedido creado exitosamente' }
     } catch (error: any) {
         console.error('Error convirtiendo presupuesto:', error)

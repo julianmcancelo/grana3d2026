@@ -11,6 +11,9 @@ export async function GET() {
                 nombre: true,
                 email: true,
                 rol: true,
+                estadoMayorista: true,
+                unidadesMesActual: true,
+                fechaVencimientoMayorista: true,
                 createdAt: true,
                 _count: {
                     select: { pedidos: true }

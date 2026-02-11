@@ -32,7 +32,9 @@ export async function getGlobalConfig() {
 
     return {
         modoProximamente: configMap['modoProximamente'] === true || configMap['modoProximamente'] === 'true',
-        textoProximamente: configMap['textoProximamente'] || '¡Próximamente!'
+        textoProximamente: configMap['textoProximamente'] || '¡Próximamente!',
+        mayoristaMinimoInicial: Number(configMap['mayorista_minimo_inicial']) || 150,
+        mayoristaMinimoMantenimiento: Number(configMap['mayorista_minimo_mantenimiento']) || 75
     }
 }
 

@@ -43,10 +43,16 @@ export async function PUT(
         const { id } = await params
         const body = await request.json()
 
-        // Solo permitir cambiar el rol
+        // Permitir cambiar rol y datos mayorista
+        const dataToUpdate: any = { rol: body.rol }
+
+        if (body.estadoMayorista) dataToUpdate.estadoMayorista = body.estadoMayorista
+        if (body.fechaVencimientoMayorista !== undefined) dataToUpdate.fechaVencimientoMayorista = body.fechaVencimientoMayorista ? new Date(body.fechaVencimientoMayorista) : null
+        if (body.unidadesMesActual !== undefined) dataToUpdate.unidadesMesActual = Number(body.unidadesMesActual)
+
         const usuario = await prisma.usuario.update({
             where: { id },
-            data: { rol: body.rol }
+            data: dataToUpdate
         })
 
         return NextResponse.json({ usuario })

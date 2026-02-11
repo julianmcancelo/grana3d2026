@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import {
     LayoutDashboard, Package, ShoppingBag, Users,
     Ticket, Megaphone, Image, Settings, LogOut, Zap,
-    Shapes, LayoutGrid, Star, Mail, Layers
+    Shapes, LayoutGrid, Star, Mail, Layers, Briefcase
 } from 'lucide-react'
 
 const menuItems = [
@@ -14,6 +14,7 @@ const menuItems = [
     { icon: Layers, label: 'Variantes', href: '/admin/variantes' },
     { icon: ShoppingBag, label: 'Pedidos', href: '/admin/pedidos' },
     { icon: Users, label: 'Usuarios', href: '/admin/usuarios' },
+    { icon: Briefcase, label: 'Mayoristas', href: '/admin/mayoristas' },
     { icon: Ticket, label: 'Cupones', href: '/admin/cupones' },
     { icon: Zap, label: 'Novedades', href: '/admin/novedades' },
     { icon: Image, label: 'Banners', href: '/admin/banners' },

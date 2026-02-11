@@ -8,6 +8,9 @@ interface Usuario {
     nombre: string
     email: string
     rol: string
+    unidadesMesActual: number
+    fechaVencimientoMayorista?: string
+    estadoMayorista: 'PENDIENTE' | 'VIGENTE' | 'VENCIDO'
 }
 
 interface UsuarioContextType {
