@@ -8,10 +8,11 @@ services:
     restart: unless-stopped
     # ports:
     #   - "3000:3000" # Expose internally only if needed, Nginx proxies to it via Docker network
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/grana3d?schema=public
-      - NEXT_PUBLIC_API_URL=https://grana3d.com.ar/api
-      # Add other necessary env vars here, or use an .env file
+    env_file:
+      - .env
+    # environment:
+    #   - DATABASE_URL=postgresql://postgres:postgres@db:5432/grana3d?schema=public
+    #   - NEXT_PUBLIC_API_URL=https://grana3d.com.ar/api
     volumes:
       - ./uploads:/app/public/uploads
     depends_on:
@@ -29,6 +30,7 @@ services:
       - ./app.conf:/etc/nginx/conf.d/default.conf
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
+      - ./uploads:/var/www/uploads
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     depends_on:
       - app

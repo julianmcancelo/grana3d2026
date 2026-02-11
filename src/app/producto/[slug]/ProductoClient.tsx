@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -15,6 +15,19 @@ import CarritoDrawer from '@/components/CarritoDrawer'
 import ModalUsuario from '@/components/ModalUsuario'
 import { useCarrito } from '@/context/CarritoContext'
 
+interface VariantOption {
+    id: string
+    nombre: string
+    precioExtra: number
+}
+
+interface VariantGroup {
+    id: string
+    nombre: string
+    tipo: 'select' | 'botones' | 'color'
+    opciones: VariantOption[]
+}
+
 interface Producto {
     id: string
     nombre: string
@@ -24,34 +37,78 @@ interface Producto {
     precio: number
     precioOferta: number | null
     imagenes: string[]
-    colores: string[]
-    tamanos: string[]
     stock: number
     categoria: { nombre: string; slug: string }
     esPreventa: boolean
     fechaLlegada?: string
     tiempoProduccion?: string
+    variantes?: { groups: VariantGroup[] }
 }
 
 export default function ProductoClient({ producto }: { producto: Producto }) {
     const { agregarProducto, abrirCarrito } = useCarrito()
 
     const [imagenActiva, setImagenActiva] = useState(0)
-    const [colorSeleccionado, setColorSeleccionado] = useState<string | null>(
-        producto.colores?.length ? producto.colores[0] : null
-    )
-    const [tamanoSeleccionado, setTamanoSeleccionado] = useState<string | null>(
-        producto.tamanos?.length ? producto.tamanos[0] : null
-    )
     const [cantidad, setCantidad] = useState(1)
 
-    const precio = producto.precioOferta || producto.precio
+    // State for selected variants: { groupId: optionId }
+    const [selections, setSelections] = useState<Record<string, string>>({})
+
+    // Initialize selections with first options
+    useEffect(() => {
+        if (producto.variantes?.groups) {
+            const initialSelections: Record<string, string> = {}
+            producto.variantes.groups.forEach(group => {
+                if (group.opciones.length > 0) {
+                    initialSelections[group.id] = group.opciones[0].id
+                }
+            })
+            setSelections(initialSelections)
+        }
+    }, [producto])
+
+    const handleSelectionChange = (groupId: string, optionId: string) => {
+        setSelections(prev => ({ ...prev, [groupId]: optionId }))
+    }
+
+    // Calculate Price with Modifiers
+    const basePrice = producto.precioOferta || producto.precio
+
+    const calculateExtraPrice = () => {
+        if (!producto.variantes?.groups) return 0
+        let totalExtra = 0
+        producto.variantes.groups.forEach(group => {
+            const selectedOptionId = selections[group.id]
+            const option = group.opciones.find(o => o.id === selectedOptionId)
+            if (option) {
+                totalExtra += option.precioExtra
+            }
+        })
+        return totalExtra
+    }
+
+    const extraPrice = calculateExtraPrice()
+    const finalPrice = basePrice + extraPrice
+
     const tieneOferta = producto.precioOferta && producto.precioOferta < producto.precio
     const descuento = tieneOferta ? Math.round((1 - producto.precioOferta! / producto.precio) * 100) : 0
 
     const handleAgregar = () => {
-        const variante = [colorSeleccionado, tamanoSeleccionado].filter(Boolean).join(' - ') || undefined
-        agregarProducto({ id: producto.id, nombre: producto.nombre, precio, imagen: producto.imagenes[0] || '', variante, cantidad })
+        // Construct variant string
+        const variantDetails = producto.variantes?.groups?.map(group => {
+            const selectedOptionId = selections[group.id]
+            const option = group.opciones.find(o => o.id === selectedOptionId)
+            return option ? `${group.nombre}: ${option.nombre}` : null
+        }).filter(Boolean).join(' | ')
+
+        agregarProducto({
+            id: producto.id,
+            nombre: producto.nombre,
+            precio: finalPrice,
+            imagen: producto.imagenes[0] || '',
+            variante: variantDetails,
+            cantidad
+        })
         abrirCarrito()
     }
 
@@ -153,9 +210,9 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                                 </h1>
                                 <div className="flex items-center gap-4 mb-6">
                                     <div className="flex items-baseline gap-3">
-                                        <span className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">${precio.toLocaleString('es-AR')}</span>
+                                        <span className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">${finalPrice.toLocaleString('es-AR')}</span>
                                         {tieneOferta && (
-                                            <span className="text-lg text-gray-400 line-through decoration-2 decoration-red-500/50">${producto.precio.toLocaleString('es-AR')}</span>
+                                            <span className="text-lg text-gray-400 line-through decoration-2 decoration-red-500/50">${(producto.precio + extraPrice).toLocaleString('es-AR')}</span>
                                         )}
                                     </div>
                                     {tieneOferta && (
@@ -186,46 +243,54 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                             </div>
 
                             <div className="space-y-8 mb-8 relative z-10">
-                                {/* Selectores (Color/Tamaño) */}
-                                {producto.colores?.length > 0 && (
-                                    <div>
+                                {/* DYNAMIC VARIANTS RENDERER */}
+                                {producto.variantes?.groups?.map(group => (
+                                    <div key={group.id}>
                                         <div className="flex justify-between items-center mb-3">
-                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Color</span>
-                                            <span className="text-xs font-bold text-gray-900 dark:text-white">{colorSeleccionado}</span>
+                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{group.nombre}</span>
                                         </div>
-                                        <div className="flex flex-wrap gap-3">
-                                            {producto.colores.map((c) => (
-                                                <button
-                                                    key={c}
-                                                    onClick={() => setColorSeleccionado(c)}
-                                                    className={`h-10 px-4 rounded-lg font-bold text-sm transition-all border-2 flex items-center justify-center min-w-[3rem] ${colorSeleccionado === c ? 'border-[#00AE42] text-[#00AE42] bg-[#00AE42]/5 shadow-[0_0_15px_rgba(0,174,66,0.2)]' : 'border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-400 hover:scale-105'}`}
-                                                >
-                                                    {c}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
 
-                                {producto.tamanos?.length > 0 && (
-                                    <div>
-                                        <div className="flex justify-between items-center mb-3">
-                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Tamaño</span>
-                                            <span className="text-xs font-bold text-[#00AE42] cursor-pointer hover:underline">Guía de talles</span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-3">
-                                            {producto.tamanos.map((t) => (
-                                                <button
-                                                    key={t}
-                                                    onClick={() => setTamanoSeleccionado(t)}
-                                                    className={`h-10 px-4 rounded-lg font-bold text-sm transition-all border-2 flex items-center justify-center min-w-[3rem] ${tamanoSeleccionado === t ? 'border-[#00AE42] text-[#00AE42] bg-[#00AE42]/5 shadow-[0_0_15px_rgba(0,174,66,0.2)]' : 'border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-400 hover:scale-105'}`}
+                                        {group.tipo === 'select' ? (
+                                            <div className="relative">
+                                                <select
+                                                    value={selections[group.id] || ''}
+                                                    onChange={(e) => handleSelectionChange(group.id, e.target.value)}
+                                                    className="w-full bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-[#00AE42] focus:border-[#00AE42] block w-full p-2.5"
                                                 >
-                                                    {t}
-                                                </button>
-                                            ))}
-                                        </div>
+                                                    {group.opciones.map(op => (
+                                                        <option key={op.id} value={op.id}>
+                                                            {op.nombre} {op.precioExtra !== 0 ? `(${(basePrice + op.precioExtra).toLocaleString('es-AR')})` : ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-3">
+                                                {group.opciones.map(op => {
+                                                    const isSelected = selections[group.id] === op.id
+                                                    const optionPrice = basePrice + op.precioExtra
+                                                    return (
+                                                        <button
+                                                            key={op.id}
+                                                            onClick={() => handleSelectionChange(group.id, op.id)}
+                                                            className={`h-10 px-4 rounded-lg font-bold text-sm transition-all border-2 flex items-center justify-center min-w-[3rem] ${isSelected
+                                                                ? 'border-[#00AE42] text-[#00AE42] bg-[#00AE42]/5 shadow-[0_0_15px_rgba(0,174,66,0.2)]'
+                                                                : 'border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-400 hover:scale-105'
+                                                                }`}
+                                                        >
+                                                            {op.nombre}
+                                                            {op.precioExtra !== 0 && (
+                                                                <span className="text-xs ml-1 opacity-70">
+                                                                    ${optionPrice.toLocaleString('es-AR')}
+                                                                </span>
+                                                            )}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                ))}
 
                                 {/* Cantidad */}
                                 <div>
@@ -287,7 +352,7 @@ export default function ProductoClient({ producto }: { producto: Producto }) {
                 <div className="flex gap-4 items-center">
                     <div className="flex-1">
                         <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Total</div>
-                        <div className="text-2xl font-black text-gray-900 dark:text-white leading-none">${(precio * cantidad).toLocaleString('es-AR')}</div>
+                        <div className="text-2xl font-black text-gray-900 dark:text-white leading-none">${(finalPrice * cantidad).toLocaleString('es-AR')}</div>
                     </div>
                     <button
                         onClick={handleAgregar}

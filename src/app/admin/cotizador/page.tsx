@@ -261,6 +261,91 @@ export default function CotizadorAdmin() {
         ? productos.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()))
         : []
 
+    // --- SMART PARSER LOGIC ---
+    const [modalParserOpen, setModalParserOpen] = useState(false)
+    const [textoPegado, setTextoPegado] = useState('')
+
+    const procesarTextoWhatsapp = () => {
+        const lineas = textoPegado.split(/\n/)
+        const nuevosItems: ItemCotizacion[] = []
+
+        lineas.forEach(linea => {
+            // Regex para: "Nombre x[Cant] -> $[Precio]" OR "Nombre x [Cant] -> $[Precio]"
+            // Ej: "Elsa x1 -> $8.800"
+            const match = linea.match(/^(.+?)\s*x\s*(\d+)\s*.*?\$\s*([\d.,]+)/i)
+
+            if (match) {
+                const nombre = match[1].trim()
+                const cantidad = parseInt(match[2])
+                const precioStr = match[3].replace(/[.,]/g, '') // Eliminar puntos/comas (asumiendo formato miles)
+                let precio = parseFloat(precioStr)
+
+                // Ajuste por si el formato era 8.800 (8800) o 8,800
+                if (precioStr.length > 2 && linea.includes(',')) {
+                    // Si usa coma decimal, ajustar. Por ahora asumimos enteros grandes para precios ARS
+                }
+
+                nuevosItems.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    nombre,
+                    cantidad,
+                    precioUnitario: precio,
+                    total: precio * cantidad
+                })
+            }
+        })
+
+        if (nuevosItems.length > 0) {
+            setItems([...items, ...nuevosItems])
+            setModalParserOpen(false)
+            setTextoPegado('')
+            Swal.fire('Éxito', `Se importaron ${nuevosItems.length} items. Revisá los precios por las dudas.`, 'success')
+        } else {
+            Swal.fire('Error', 'No se detectaron items válidos. Asegurate de copiar el formato "Producto xCant -> $Precio"', 'error')
+        }
+    }
+
+    // --- CONVERTIR A PEDIDO ---
+    const convertirAPedido = async () => {
+        const result = await Swal.fire({
+            title: '¿Convertir a Pedido?',
+            text: "Se creará un nuevo pedido marcado como PENDIENTE en el sistema.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#00AE42',
+            confirmButtonText: 'Sí, crear pedido'
+        })
+
+        if (result.isConfirmed) {
+            setGuardando(true)
+            try {
+                // Importar dinámicamente para evitar errores de build si no existe
+                const { convertirPresupuestoAPedido } = await import('./actions')
+
+                const res = await convertirPresupuestoAPedido({
+                    clienteNombre: cliente.nombre,
+                    clienteEmail: cliente.email,
+                    clienteTelefono: cliente.telefono,
+                    clienteCuit: cliente.cuit,
+                    items,
+                    total: calcularTotal()
+                })
+
+                if (res.success) {
+                    Swal.fire('¡Pedido Creado!', 'El pedido ya figura en el listado.', 'success')
+                    // Opcional: Redirigir a editar el pedido
+                } else {
+                    Swal.fire('Error', res.message, 'error')
+                }
+            } catch (error) {
+                console.error('Error conversion:', error)
+                Swal.fire('Error', 'No se pudo convertir.', 'error')
+            } finally {
+                setGuardando(false)
+            }
+        }
+    }
+
     return (
         <div className="space-y-6">
             {/* Header y Acciones */}
@@ -272,7 +357,14 @@ export default function CotizadorAdmin() {
                     </h1>
                     <p className="text-gray-400 text-sm">Creá presupuestos rápidos y profesionales</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={() => setModalParserOpen(true)}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2 transition-colors border border-purple-500/30"
+                    >
+                        <FileText className="w-4 h-4" />
+                        Pegar WhatsApp
+                    </button>
                     <button
                         onClick={() => {
                             cargarHistorialPresupuestos()
@@ -289,14 +381,31 @@ export default function CotizadorAdmin() {
                         className="px-4 py-2 bg-[#00AE42] hover:bg-[#009b3a] text-white rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
                     >
                         <Save className="w-4 h-4" />
-                        {guardando ? 'Guardando...' : 'Guardar'}
+                        {guardando ? '...' : 'Guardar'}
                     </button>
+                    {items.length > 0 && (
+                        <button
+                            onClick={convertirAPedido}
+                            disabled={guardando}
+                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+                        >
+                            <Send className="w-4 h-4" />
+                            A Pedido
+                        </button>
+                    )}
                     <button
                         onClick={generarPDF}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
                     >
                         <Download className="w-4 h-4" />
-                        Descargar PDF
+                        PDF
+                    </button>
+                    <button
+                        onClick={enviarWhatsapp}
+                        className="px-4 py-2 bg-[#25D366] hover:bg-[#20b858] text-white rounded-lg flex items-center gap-2 transition-colors"
+                    >
+                        <Send className="w-4 h-4" />
+                        WA
                     </button>
                 </div>
             </div>
@@ -476,6 +585,44 @@ export default function CotizadorAdmin() {
                     </div>
                 </div>
             </div>
+
+            {/* Modal Importar WhatsApp */}
+            {modalParserOpen && (
+                <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#1a1a1a] p-6 rounded-2xl w-full max-w-lg border border-gray-700">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold text-white">Pegar desde WhatsApp</h3>
+                            <button onClick={() => setModalParserOpen(false)} className="text-gray-400 hover:text-white">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <p className="text-gray-400 text-sm mb-4">
+                            Copiá el mensaje completo y pegalo acá. El sistema buscará líneas como: <br />
+                            <code className="bg-[#111] px-1 rounded text-green-400">Producto x2 → $8.800</code>
+                        </p>
+                        <textarea
+                            value={textoPegado}
+                            onChange={e => setTextoPegado(e.target.value)}
+                            className="w-full h-40 bg-[#111] border border-gray-700 rounded-xl p-3 text-white text-sm font-mono mb-4 focus:border-green-500 outline-none"
+                            placeholder="Pegá tu texto acá..."
+                        />
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setModalParserOpen(false)}
+                                className="px-4 py-2 text-gray-400 hover:text-white"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={procesarTextoWhatsapp}
+                                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold"
+                            >
+                                Procesar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

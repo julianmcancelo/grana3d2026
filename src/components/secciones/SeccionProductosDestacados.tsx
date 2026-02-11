@@ -6,7 +6,7 @@ import { useCarrito } from '@/context/CarritoContext'
 
 interface Producto {
     id: string; nombre: string; slug: string; precio: number; precioOferta: number | null;
-    imagenes: string[]; categoria: { nombre: string }
+    imagenes: string[]; categoria: { nombre: string }; variantes: any
 }
 
 const fadeInUp = {
@@ -25,9 +25,36 @@ function ProductCard({ producto }: { producto: Producto }) {
     const tieneOferta = producto.precioOferta && producto.precioOferta < producto.precio
     const descuento = tieneOferta ? Math.round((1 - producto.precioOferta! / producto.precio) * 100) : 0
 
+    // Variant Logic
+    const variantGroups = producto.variantes?.groups || [] as any[]
+    const hasVariants = variantGroups.length > 0
+
+    // Calculate min price
+    let minPrice = precio
+    if (hasVariants) {
+        // Assume simplified logic: sum of min extras? Or just take the lowest combination?
+        // This can be complex. Let's simplfy: The base price is usually the "starting" price.
+        // But if there are negative extras (e.g. smaller size), we need to find the lowest possible price.
+        // For now, let's look for the lowest single extra option across groups to show "Desde..." if applicable.
+        // Better yet: just check if there are options with negative price.
+
+        // Actually, simpler: Calculate min possible final price.
+        // Iterate groups, find min extra in each group.
+        let totalMinExtra = 0
+        variantGroups.forEach((g: any) => {
+            if (g.opciones.length > 0) {
+                const minExtra = Math.min(...g.opciones.map((o: any) => o.precioExtra))
+                // If the group is required (usually yes), we add the min extra.
+                // For now, we assume one selection per group is required.
+                totalMinExtra += minExtra
+            }
+        })
+        minPrice = precio + totalMinExtra
+    }
+
     return (
-        <motion.div variants={fadeInUp} className="group bg-white dark:bg-[#111] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 hover:border-[#00AE42] dark:hover:border-[#00AE42] hover:shadow-[0_10px_40px_-10px_rgba(0,174,66,0.1)] transition-all duration-300">
-            <Link href={`/producto/${producto.slug}`}>
+        <motion.div variants={fadeInUp} className="group bg-white dark:bg-[#111] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 hover:border-[#00AE42] dark:hover:border-[#00AE42] hover:shadow-[0_10px_40px_-10px_rgba(0,174,66,0.1)] transition-all duration-300 flex flex-col h-full">
+            <Link href={`/producto/${producto.slug}`} className="flex-1 flex flex-col">
                 <div className="relative aspect-[4/5] overflow-hidden bg-gray-100 dark:bg-gray-800">
                     {tieneOferta && (
                         <div className="absolute top-3 left-3 z-10 bg-[#00AE42] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-sm">
@@ -51,38 +78,54 @@ function ProductCard({ producto }: { producto: Producto }) {
                     </div>
                 </div>
 
-                <div className="p-5">
+                <div className="p-5 flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-2">
                         {producto.categoria && <span className="text-[10px] bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-md uppercase tracking-wider font-bold">{producto.categoria.nombre}</span>}
-                        <div className="flex text-yellow-500">
+                        <div className="flex text-yellow-500 ml-auto">
                             {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-current" />)}
                         </div>
                     </div>
 
                     <h3 className="text-gray-900 dark:text-white font-bold text-lg leading-tight mb-2 line-clamp-2 group-hover:text-[#00AE42] transition-colors">{producto.nombre}</h3>
 
-                    <div className="flex items-baseline gap-2 mb-4">
-                        {tieneOferta ? (
-                            <>
-                                <span className="text-2xl font-black text-gray-900 dark:text-white">${producto.precioOferta?.toLocaleString('es-AR')}</span>
-                                <span className="text-sm text-gray-400 line-through">${producto.precio.toLocaleString('es-AR')}</span>
-                            </>
-                        ) : (
-                            <span className="text-2xl font-black text-gray-900 dark:text-white">${producto.precio.toLocaleString('es-AR')}</span>
-                        )}
-                    </div>
+                    {/* Variant Badges */}
+                    {hasVariants && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                            {variantGroups.slice(0, 2).map((g: any) => (
+                                <span key={g.id} className="text-[10px] text-gray-500 border border-gray-200 dark:border-gray-700 px-1.5 py-0.5 rounded">
+                                    {g.opciones.length} {g.nombre}s
+                                </span>
+                            ))}
+                        </div>
+                    )}
 
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault()
-                            agregarProducto({ id: producto.id, nombre: producto.nombre, precio, imagen: producto.imagenes[0] || '' })
-                        }}
-                        className="w-full py-3 bg-[#1a1a1a] text-white font-bold rounded-xl hover:bg-[#00AE42] transition-all flex items-center justify-center gap-2 group/btn relative overflow-hidden"
-                    >
-                        <span className="relative z-10 flex items-center gap-2">
-                            <ShoppingCart className="w-4 h-4" /> Agregar al Carrito
-                        </span>
-                    </button>
+                    <div className="mt-auto pt-4 flex items-center justify-between gap-4">
+                        <div className="flex flex-col">
+                            {hasVariants && minPrice !== precio && (
+                                <span className="text-[10px] text-gray-500 uppercase font-bold">Desde</span>
+                            )}
+                            <div className="flex items-baseline gap-2">
+                                {tieneOferta ? (
+                                    <>
+                                        <span className="text-xl font-black text-gray-900 dark:text-white">${producto.precioOferta?.toLocaleString('es-AR')}</span>
+                                        <span className="text-xs text-gray-400 line-through">${producto.precio.toLocaleString('es-AR')}</span>
+                                    </>
+                                ) : (
+                                    <span className="text-xl font-black text-gray-900 dark:text-white">${minPrice.toLocaleString('es-AR')}</span>
+                                )}
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault()
+                                agregarProducto({ id: producto.id, nombre: producto.nombre, precio: minPrice, imagen: producto.imagenes[0] || '' })
+                            }}
+                            className="p-3 bg-[#1a1a1a] text-white rounded-xl hover:bg-[#00AE42] transition-all shadow-lg hover:shadow-[#00AE42]/20"
+                        >
+                            <ShoppingCart className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </Link>
         </motion.div>

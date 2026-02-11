@@ -44,8 +44,8 @@ export async function getEmailConfig() {
         return acc
     }, {})
 
-    const whatsapp = configMap['whatsapp'] || ''
-    const instagram = configMap['instagram'] || ''
+    const whatsapp = String(configMap['whatsapp'] || '')
+    const instagram = String(configMap['instagram'] || '')
 
     return {
         nombreTienda: configMap['nombreTienda'] || 'Grana 3D',

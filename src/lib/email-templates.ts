@@ -167,7 +167,7 @@ export function getWelcomeEmailTemplate(nombre: string, config: EmailBrandConfig
     `;
 }
 
-export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPago: string, config: EmailBrandConfig = {}) {
+export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPago: string, config: EmailBrandConfig = {}, paymentUrl?: string) {
     const baseUrl = getBaseUrl();
 
     // Items Logic
@@ -189,7 +189,29 @@ export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPa
     // Payment Logic
     let paymentInfo = '';
 
-    if (metodoPago === 'TRANSFERENCIA') {
+    if (metodoPago === 'MERCADOPAGO') {
+        const paymentButtonHtml = (config as any).paymentUrl ? `
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="${(config as any).paymentUrl}" style="${styles.button}; background-color: #009ee3;">
+                    Pagar Ahora con Mercado Pago
+                </a>
+                <p style="margin-top: 12px; font-size: 13px; color: #9ca3af;">
+                    Si no pudiste completar el pago, usá este botón para finalizar tu compra.
+                </p>
+            </div>
+        ` : '';
+
+        paymentInfo = `
+            <div style="${styles.card}">
+                <h3 style="margin:0 0 16px 0; color: #fff; font-size: 15px;">Información de Pago</h3>
+                <p style="color: #9ca3af; font-size: 14px; margin-bottom: 16px;">
+                    Has seleccionado Mercado Pago.
+                    ${(config as any).paymentUrl ? 'Para confirmar tu pedido, es necesario completar el pago.' : 'El pago se procesará a través de la plataforma.'}
+                </p>
+                ${paymentButtonHtml}
+            </div>
+        `;
+    } else if (metodoPago === 'TRANSFERENCIA') {
         const bancoNombre = config.bancoNombre || '';
         const bancoAlias = config.bancoAlias || '';
         const bancoCbu = config.bancoCbu || '';
@@ -211,6 +233,18 @@ export function getOrderConfirmationTemplate(pedido: any, items: any[], metodoPa
                 <div style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; color: #60a5fa; font-size: 12px;">
                     Por favor envianos el comprobante respondiendo a este correo o por WhatsApp.
                 </div>
+            </div>
+        `;
+    } else if (metodoPago === 'EFECTIVO') {
+        paymentInfo = `
+            <div style="${styles.card}">
+                <h3 style="margin:0 0 16px 0; color: #fff; font-size: 15px;">Pago en Efectivo</h3>
+                <p style="color: #9ca3af; font-size: 14px; line-height: 1.6;">
+                    Podés abonar al retirar tu pedido por nuestro local.
+                    <br><br>
+                    <strong style="color: #fff;">Dirección:</strong><br>
+                    ${config.direccion || 'Consultar dirección por WhatsApp'}
+                </p>
             </div>
         `;
     }

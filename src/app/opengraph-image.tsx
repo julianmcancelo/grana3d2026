@@ -23,8 +23,7 @@ export default function Image() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    // Deep, professional background with slight vignette
-                    background: 'radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%)',
+                    background: 'linear-gradient(to bottom right, #1a1a1a, #000000)',
                     flexDirection: 'column',
                     color: 'white',
                 }}
@@ -37,52 +36,40 @@ export default function Image() {
                         marginBottom: 40,
                     }}
                 >
-                    {/* Logo Container - 3D Render Style */}
                     <div
                         style={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            width: 250,
-                            height: 250,
+                            width: 200,
+                            height: 200,
                             marginRight: 60,
-                            // Glassmorphism / Depth effect container
-                            background: 'rgba(255,255,255,0.03)',
-                            borderRadius: 30,
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
                         }}
                     >
                         <svg
-                            width="160"
-                            height="160"
+                            width="200"
+                            height="200"
                             viewBox="0 0 24 24"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
                             style={{
-                                filter: 'drop-shadow(0px 0px 30px rgba(0, 255, 66, 0.3))', // Ambient Glow
+                                filter: 'drop-shadow(0px 10px 20px rgba(0,0,0,0.5))',
                             }}
                         >
-                            <defs>
-                                <linearGradient id="neonGreenOG" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                                    <stop offset="0%" stopColor="#4AFF80" />
-                                    <stop offset="50%" stopColor="#00AE42" />
-                                    <stop offset="100%" stopColor="#006624" />
-                                </linearGradient>
-                                <linearGradient id="shine" x1="0" y1="0" x2="24" y2="0" gradientUnits="userSpaceOnUse">
-                                    <stop offset="0%" stopColor="rgba(255,255,255,0)" />
-                                    <stop offset="50%" stopColor="rgba(255,255,255,0.3)" />
-                                    <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-                                </linearGradient>
-                            </defs>
+                            {/* Top Faces (Brightest) */}
+                            <path d="M17 6.5 L12 4 L7 6.5 L7 8.5 L12 6 L17 8.5 Z" fill="#2EFF63" />
+                            <path d="M12 11 L14 12 L14 15 L12 14 Z" fill="#2EFF63" />
 
-                            <path d="M4 6H20L18 10H6L4 6Z" fill="url(#neonGreenOG)" />
-                            <path d="M4 8V18L8 16V10L4 8Z" fill="url(#neonGreenOG)" />
-                            <path d="M6 18H14L16 14H8L6 18Z" fill="url(#neonGreenOG)" />
-                            <path d="M12 14H18L20 10H14L12 14Z" fill="url(#neonGreenOG)" />
+                            {/* Side Faces (Mid Tone) */}
+                            <path d="M7 6.5 L7 17.5 L10 19 L10 8 L7 6.5 Z" fill="#00C94D" />
+                            <path d="M14 12 L17 10.5 L17 13.5 L14 15 Z" fill="#00C94D" />
 
-                            {/* Specular Highlight */}
-                            <path d="M4 6H20L18 10H6L4 6Z" fill="white" fillOpacity="0.2" />
+                            {/* Front/Dark Faces (Shadow) */}
+                            <path d="M7 17.5 L12 20 L17 17.5 L17 15.5 L12 18 L7 15.5 Z" fill="#008F35" />
+                            <path d="M17 17.5 L17 13.5 L14 15 L14 19 L17 17.5 Z" fill="#007029" />
+
+                            {/* Inner depth */}
+                            <path d="M10 8 L12 9 L12 14 L10 13 Z" fill="#005C22" />
                         </svg>
                     </div>
 
@@ -92,27 +79,15 @@ export default function Image() {
                             fontWeight: 900,
                             fontFamily: 'sans-serif',
                             letterSpacing: '-0.05em',
-                            background: 'linear-gradient(to bottom, #ffffff, #aaaaaa)',
-                            backgroundClip: 'text',
-                            color: 'transparent',
+                            color: 'white',
                         }}>
-                            Grana<span style={{ color: '#00AE42', textShadow: '0 0 20px rgba(0,174,66,0.5)' }}>3D</span>
+                            Grana<span style={{ color: '#00AE42' }}>3D</span>
                         </div>
-                        <div style={{ fontSize: 48, fontWeight: 400, fontFamily: 'sans-serif', color: '#888', marginTop: 10 }}>
+                        <div style={{ fontSize: 40, fontWeight: 400, fontFamily: 'sans-serif', color: '#888', marginTop: 10 }}>
                             Impresión 3D Profesional
                         </div>
                     </div>
                 </div>
-
-                {/* Footer strip with gradient */}
-                <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 8,
-                    background: 'linear-gradient(90deg, #00AE42 0%, #004d1d 100%)',
-                }} />
             </div>
         ),
         // ImageResponse options

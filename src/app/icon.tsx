@@ -22,61 +22,44 @@ export default function Icon() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: 'radial-gradient(circle at 50% 0%, #2a2a2a 0%, #000000 100%)', // Subtle lighting
+                    background: '#050505', // Deep Black
                     borderRadius: 6,
-                    border: '1px solid #333',
                 }}
             >
                 <svg
-                    width="20"
-                    height="20"
+                    width="24"
+                    height="24"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    style={{
-                        filter: 'drop-shadow(0px 2px 4px rgba(0, 255, 66, 0.2))', // Neon Glow
-                    }}
                 >
-                    <defs>
-                        <linearGradient id="neonGreen" x1="4" y1="6" x2="20" y2="18" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stopColor="#00FF41" />
-                            <stop offset="100%" stopColor="#008F35" />
-                        </linearGradient>
-                        <linearGradient id="depth" x1="12" y1="0" x2="12" y2="24" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
-                            <stop offset="100%" stopColor="rgba(0,0,0,0.2)" />
-                        </linearGradient>
-                    </defs>
+                    {/* ISOMETRIC G DESIGN */}
 
-                    {/* Main Shape with Gradient */}
-                    <path
-                        d="M4 6H20L18 10H6L4 6Z"
-                        fill="url(#neonGreen)"
-                    />
-                    <path
-                        d="M4 8V18L8 16V10L4 8Z"
-                        fill="url(#neonGreen)"
-                    />
-                    <path
-                        d="M6 18H14L16 14H8L6 18Z"
-                        fill="url(#neonGreen)"
-                    />
-                    <path
-                        d="M12 14H18L20 10H14L12 14Z"
-                        fill="url(#neonGreen)"
-                    />
+                    {/* Top Face (Lightest Green) */}
+                    <path d="M12 4L18 7V9L12 6L6 9V7L12 4Z" fill="#00FF41" />
+                    <path d="M12 12L18 15V17L12 14L6 17V15L12 12Z" fill="#00FF41" />
+                    {/* Note: complex shape to form G */}
 
-                    {/* Overlay for "3D" Lighting/Depth */}
-                    <path
-                        d="M4 6H20L18 10H6L4 6Z"
-                        fill="url(#depth)"
-                        style={{ mixBlendMode: 'overlay' }}
-                    />
-                    <path
-                        d="M4 8V18L8 16V10L4 8Z"
-                        fill="url(#depth)"
-                        style={{ mixBlendMode: 'overlay' }}
-                    />
+                    {/* Simplified Isometric G Block */}
+                    {/* Top part */}
+                    <path d="M17 6.5 L12 4 L7 6.5 L7 8.5 L12 6 L17 8.5 Z" fill="#4BFF75" /> {/* Top/Light */}
+
+                    {/* Left Vertical Side (Medium) */}
+                    <path d="M7 6.5 L7 17.5 L10 19 L10 8 L7 6.5 Z" fill="#00AE42" /> {/* Side/Mid */}
+
+                    {/* Bottom Side */}
+                    <path d="M7 17.5 L12 20 L17 17.5 L17 15.5 L12 18 L7 15.5 Z" fill="#008F35" /> {/* Bottom/Dark */}
+
+                    {/* Right Vertical (Bottom part of G) */}
+                    <path d="M17 17.5 L17 13.5 L14 15 L14 19 L17 17.5 Z" fill="#007A2D" />
+
+                    {/* Crossbar of G */}
+                    <path d="M14 12 L17 10.5 L17 13.5 L14 15 Z" fill="#00AE42" />
+                    <path d="M12 11 L14 12 L14 15 L12 14 Z" fill="#4BFF75" /> {/* Inner Top */}
+
+                    {/* Inner vertical */}
+                    <path d="M12 11 L15 12.5 L15 14.5 L12 13 Z" fill="transparent" />
+
                 </svg>
             </div>
         ),

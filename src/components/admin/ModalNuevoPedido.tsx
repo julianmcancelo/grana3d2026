@@ -23,12 +23,12 @@ export default function ModalNuevoPedido({ isOpen, onClose, onSuccess }: ModalNu
         estado: 'CONFIRMADO'
     })
 
-    const [items, setItems] = useState<{ nombre: string; precio: number; cantidad: number }[]>([
-        { nombre: '', precio: 0, cantidad: 1 }
+    const [items, setItems] = useState<{ nombre: string; precio: number; cantidad: number; variante?: string }[]>([
+        { nombre: '', precio: 0, cantidad: 1, variante: '' }
     ])
 
     const agregarItem = () => {
-        setItems([...items, { nombre: '', precio: 0, cantidad: 1 }])
+        setItems([...items, { nombre: '', precio: 0, cantidad: 1, variante: '' }])
     }
 
     const eliminarItem = (index: number) => {
@@ -86,7 +86,7 @@ export default function ModalNuevoPedido({ isOpen, onClose, onSuccess }: ModalNu
                 metodoEnvio: 'RETIRO_LOCAL',
                 estado: 'CONFIRMADO'
             })
-            setItems([{ nombre: '', precio: 0, cantidad: 1 }])
+            setItems([{ nombre: '', precio: 0, cantidad: 1, variante: '' }])
 
         } catch (error) {
             console.error(error)
@@ -137,8 +137,8 @@ export default function ModalNuevoPedido({ isOpen, onClose, onSuccess }: ModalNu
                                                 type="button"
                                                 onClick={() => setForm({ ...form, origen: origen.id })}
                                                 className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${form.origen === origen.id
-                                                        ? 'border-teal-500 bg-teal-500/10'
-                                                        : 'border-gray-700 hover:border-gray-600 bg-gray-800'
+                                                    ? 'border-teal-500 bg-teal-500/10'
+                                                    : 'border-gray-700 hover:border-gray-600 bg-gray-800'
                                                     }`}
                                             >
                                                 <origen.icon className={`w-6 h-6 ${form.origen === origen.id ? origen.color : 'text-gray-500'}`} />
@@ -187,13 +187,21 @@ export default function ModalNuevoPedido({ isOpen, onClose, onSuccess }: ModalNu
                                     </div>
                                     <div className="space-y-3">
                                         {items.map((item, i) => (
-                                            <div key={i} className="flex gap-2 items-start">
-                                                <input
-                                                    placeholder="Producto..."
-                                                    value={item.nombre}
-                                                    onChange={e => updateItem(i, 'nombre', e.target.value)}
-                                                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:border-teal-500 outline-none"
-                                                />
+                                            <div key={i} className="flex gap-2 items-start flex-wrap sm:flex-nowrap border-b border-gray-700/50 pb-3 mb-3">
+                                                <div className="flex-1 min-w-[150px] space-y-2">
+                                                    <input
+                                                        placeholder="Producto..."
+                                                        value={item.nombre}
+                                                        onChange={e => updateItem(i, 'nombre', e.target.value)}
+                                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:border-teal-500 outline-none"
+                                                    />
+                                                    <input
+                                                        placeholder="Variante (ej: Color: Rojo)"
+                                                        value={item.variante || ''}
+                                                        onChange={e => updateItem(i, 'variante', e.target.value)}
+                                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 focus:border-teal-500 outline-none"
+                                                    />
+                                                </div>
                                                 <input
                                                     type="number"
                                                     placeholder="$"

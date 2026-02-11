@@ -3,12 +3,14 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import {
     Plus, Search, Edit2, Trash2, Package,
-    Eye, EyeOff, X, Loader2
+    Eye, EyeOff, X, Loader2, Upload
 } from 'lucide-react'
 import api from '@/lib/api'
 import ImageUpload from '@/components/admin/ImageUpload'
+import VariantsManager from '@/components/admin/VariantsManager'
 
 const MarkdownEditor = dynamic(() => import('@/components/admin/MarkdownEditor'), {
     loading: () => <div className="h-[300px] w-full bg-white/5 rounded-xl animate-pulse" />,
@@ -30,6 +32,7 @@ interface Producto {
     esPreventa: boolean
     fechaLlegada?: string
     tiempoProduccion?: string
+    variantes?: any // JSON
 }
 
 interface Categoria {
@@ -61,8 +64,10 @@ function ProductosContent() {
         destacado: false,
         esPreventa: false,
         fechaLlegada: '',
-        tiempoProduccion: ''
+        tiempoProduccion: '',
+        variantes: [] as any[] // Array de grupos de variantes
     })
+
 
     useEffect(() => {
         cargarDatos()
@@ -104,7 +109,8 @@ function ProductosContent() {
                 destacado: producto.destacado,
                 esPreventa: producto.esPreventa || false,
                 fechaLlegada: producto.fechaLlegada ? new Date(producto.fechaLlegada).toISOString().split('T')[0] : '',
-                tiempoProduccion: producto.tiempoProduccion || ''
+                tiempoProduccion: producto.tiempoProduccion || '',
+                variantes: (producto.variantes as any)?.groups || []
             })
         } else {
             setEditando(null)
@@ -121,7 +127,8 @@ function ProductosContent() {
                 destacado: false,
                 esPreventa: false,
                 fechaLlegada: '',
-                tiempoProduccion: ''
+                tiempoProduccion: '',
+                variantes: []
             })
         }
         setModalAbierto(true)
@@ -154,7 +161,8 @@ function ProductosContent() {
                 destacado: form.destacado,
                 esPreventa: form.esPreventa,
                 fechaLlegada: form.fechaLlegada ? new Date(form.fechaLlegada) : null,
-                tiempoProduccion: form.tiempoProduccion || null
+                tiempoProduccion: form.tiempoProduccion || null,
+                variantes: { groups: form.variantes } // Wrap in object as expected
             }
 
             if (editando) {
@@ -210,12 +218,39 @@ function ProductosContent() {
                     <h1 className="text-3xl font-bold mb-2">Productos</h1>
                     <p className="text-gray-400">{productos.length} productos en total</p>
                 </div>
-                <button
-                    onClick={() => abrirModal()}
-                    className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-black font-bold rounded-lg transition-colors"
-                >
-                    <Plus className="w-5 h-5" /> Nuevo Producto
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={async () => {
+                            if (!confirm('¿Sincronizar productos con Google Sheets? Esto sobrescribirá la hoja.')) return
+                            const { syncToSheet } = await import('./importar/actions')
+                            try {
+                                const res = await syncToSheet()
+                                if (res.success) {
+                                    alert(`Sincronizados ${res.count} productos`)
+                                } else {
+                                    alert('Error: ' + res.message)
+                                }
+                            } catch (e) {
+                                alert('Error al sincronizar')
+                            }
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors border border-green-500/20"
+                    >
+                        <Upload className="w-5 h-5 rotate-180" /> Sync Sheets
+                    </button>
+                    <Link
+                        href="/admin/productos/importar"
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-lg transition-colors border border-white/10"
+                    >
+                        <Upload className="w-5 h-5" /> Importar
+                    </Link>
+                    <button
+                        onClick={() => abrirModal()}
+                        className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-black font-bold rounded-lg transition-colors"
+                    >
+                        <Plus className="w-5 h-5" /> Nuevo Producto
+                    </button>
+                </div>
             </div>
 
             {/* Buscador */}
@@ -362,7 +397,24 @@ function ProductosContent() {
                                         label="Descripción Detallada (Soporta imágenes, listas, negritas...)"
                                     />
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <ImageUpload
+                                        value={form.imagenes}
+                                        onChange={(urls: string | string[]) => setForm({ ...form, imagenes: Array.isArray(urls) ? urls : [urls] })}
+                                        label="Galería de Imágenes (La primera es la principal)"
+                                        multiple={true}
+                                    />
+                                    <p className="text-xs text-gray-500 mt-2">Sube múltiples imágenes. La primera será la portada.</p>
+
+                                    {/* --- SECCIÓN VARIANTES --- */}
+                                    <div className="mt-8 border-t border-gray-800 pt-6">
+                                        <VariantsManager
+                                            variantes={form.variantes}
+                                            onChange={(newVariantes) => setForm({ ...form, variantes: newVariantes })}
+                                            basePrice={Number(form.precio) || 0}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-800">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-400 mb-1">Precio *</label>
                                             <input

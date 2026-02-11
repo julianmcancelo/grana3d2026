@@ -4,19 +4,21 @@ import { usePathname } from 'next/navigation'
 import {
     LayoutDashboard, Package, ShoppingBag, Users,
     Ticket, Megaphone, Image, Settings, LogOut, Zap,
-    Shapes, LayoutGrid, Star
+    Shapes, LayoutGrid, Star, Mail, Layers
 } from 'lucide-react'
 
 const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
     { icon: Package, label: 'Productos', href: '/admin/productos' },
     { icon: Shapes, label: 'Categorías', href: '/admin/categorias' },
+    { icon: Layers, label: 'Variantes', href: '/admin/variantes' },
     { icon: ShoppingBag, label: 'Pedidos', href: '/admin/pedidos' },
     { icon: Users, label: 'Usuarios', href: '/admin/usuarios' },
     { icon: Ticket, label: 'Cupones', href: '/admin/cupones' },
     { icon: Zap, label: 'Novedades', href: '/admin/novedades' },
     { icon: Image, label: 'Banners', href: '/admin/banners' },
     { icon: Megaphone, label: 'Promo Banners', href: '/admin/promobanners' },
+    { icon: Mail, label: 'Correos', href: '/admin/emails' },
     { icon: LayoutGrid, label: 'Homepage', href: '/admin/homepage' },
     { icon: Star, label: 'Reseñas', href: '/admin/resenas' },
     { icon: Settings, label: 'Configuración', href: '/admin/configuracion' },

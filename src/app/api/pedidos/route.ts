@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
             await sendEmail({
                 to: cliente.email,
                 subject: `Confirmación de Pedido #${pedido.id.slice(-6).toUpperCase()} - ${emailConfig.nombreTienda}`,
-                html: getOrderConfirmationTemplate(pedido, itemsProcesados, metodoPago, emailConfig)
+                html: getOrderConfirmationTemplate(pedido, itemsProcesados, metodoPago, emailConfig, urlPago || undefined)
             })
         } catch (emailError) {
             console.error('Error enviando correo de pedido:', emailError)
@@ -205,6 +205,11 @@ export async function POST(request: NextRequest) {
             },
             urlPago
         }, { status: 201 })
+
+        // Sincronizar con Google Sheets en segundo plano (sin await para no bloquear)
+        import('@/lib/googleSheets').then(({ syncOrderToSheet }) => {
+            syncOrderToSheet(pedido)
+        }).catch(err => console.error('Error background sync sheet:', err))
 
     } catch (error) {
         console.error('Error crítico al crear pedido:', error)

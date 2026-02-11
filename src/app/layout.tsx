@@ -10,8 +10,12 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import MantenimientoEpicardo from "@/components/MantenimientoEpicardo";
 
 const inter = Inter({ subsets: ["latin"] });
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://grana3d.com.ar'),
@@ -59,7 +63,13 @@ export default async function RootLayout({
       });
 
       if (maintenanceConfig?.valor === 'true') {
-        redirect('https://mantenimiento.grana3d.com.ar');
+        return (
+          <html lang="es">
+            <body className={`${inter.className} antialiased bg-[#050505]`}>
+              <MantenimientoEpicardo texto="Estamos realizando mejoras en nuestra infraestructura." />
+            </body>
+          </html>
+        );
       }
     } catch (error) {
       console.error("Error checking maintenance mode:", error);

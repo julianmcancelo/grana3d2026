@@ -10,31 +10,7 @@ async function requireAdmin(request: NextRequest) {
     return payload
 }
 
-// GET - Obtener un producto
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const { id } = await params
-
-        const producto = await prisma.producto.findUnique({
-            where: { id: id },
-            include: { categoria: true }
-        })
-
-        if (!producto) {
-            return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
-        }
-
-        return NextResponse.json({ producto })
-    } catch (error) {
-        console.error('Error obteniendo producto:', error)
-        return NextResponse.json({ error: 'Error interno' }, { status: 500 })
-    }
-}
-
-// PUT - Actualizar producto
+// PUT - Actualizar producto (Admin)
 export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -70,21 +46,19 @@ export async function PUT(
             if (body.categoriaId) {
                 dataToUpdate.categoria = { connect: { id: body.categoriaId } }
             }
-            // No podemos desconectar categoría porque es obligatoria en el schema
         }
         if (body.imagen !== undefined) dataToUpdate.imagen = body.imagen
-        if (body.imagenes !== undefined) dataToUpdate.imagenes = body.imagenes // Add support for images array
+        if (body.imagenes !== undefined) dataToUpdate.imagenes = body.imagenes
         if (body.activo !== undefined) dataToUpdate.activo = body.activo
         if (body.destacado !== undefined) dataToUpdate.destacado = body.destacado
         if (body.esPreventa !== undefined) dataToUpdate.esPreventa = body.esPreventa
-        // Handle Dates safely
         if (body.fechaLlegada !== undefined) {
             dataToUpdate.fechaLlegada = body.fechaLlegada ? new Date(body.fechaLlegada) : null
         }
         if (body.tiempoProduccion !== undefined) dataToUpdate.tiempoProduccion = body.tiempoProduccion
         if (body.variantes !== undefined) dataToUpdate.variantes = body.variantes
 
-        console.log('Update data:', JSON.stringify(dataToUpdate, null, 2))
+        console.log('Update data (Admin):', JSON.stringify(dataToUpdate, null, 2))
 
         const producto = await prisma.producto.update({
             where: { id: id },
@@ -94,16 +68,11 @@ export async function PUT(
         return NextResponse.json({ producto })
     } catch (error) {
         console.error('Error actualizando producto:', error)
-        // Log more details if it's a Prisma error
-        if (error instanceof Error) {
-            console.error('Error message:', error.message)
-            console.error('Error stack:', error.stack)
-        }
         return NextResponse.json({ error: 'Error al actualizar producto' }, { status: 500 })
     }
 }
 
-// DELETE - Eliminar producto
+// DELETE - Eliminar producto (Admin)
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

@@ -24,6 +24,10 @@ Write-Host "Copiando docker-compose.yml..."
 $destination = "$USER@$HOST_IP`:$REMOTE_PATH/docker-compose.yml"
 scp -P $PORT docker-compose.yml $destination
 
+Write-Host "Copiando app.conf (Nginx)..."
+$destConf = "$USER@$HOST_IP`:$REMOTE_PATH/app.conf"
+scp -P $PORT app.conf $destConf
+
 Write-Host "Copiando configuración de entorno..."
 if (Test-Path ".env.production") {
     Write-Host "Usando .env.production para el VPS..." -ForegroundColor Green

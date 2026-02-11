@@ -22,51 +22,31 @@ export default function Icon() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    // Luxurious dark metal background
-                    background: 'radial-gradient(circle at 50% 0%, #3a3a3a 0%, #050505 100%)',
-                    borderRadius: 40,
+                    background: '#111',
+                    borderRadius: 36,
                 }}
             >
-                {/* Subtle noise texture overlay if possible, or just ring */}
-                <div style={{
-                    position: 'absolute',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    border: '4px solid rgba(255,255,255,0.05)',
-                    borderRadius: 40,
-                }} />
-
                 <svg
-                    width="100"
-                    height="100"
+                    width="120"
+                    height="120"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    style={{
-                        filter: 'drop-shadow(0px 10px 20px rgba(0, 255, 66, 0.4))', // Stronger Neon Glow for large icon
-                    }}
                 >
-                    <defs>
-                        {/* Richer Gradient for Large Icon */}
-                        <linearGradient id="neonGreenLarge" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stopColor="#4AFF80" />
-                            <stop offset="50%" stopColor="#00AE42" />
-                            <stop offset="100%" stopColor="#006624" />
-                        </linearGradient>
-                        <linearGradient id="lighting" x1="12" y1="0" x2="12" y2="24" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stopColor="rgba(255,255,255,0.4)" />
-                            <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-                        </linearGradient>
-                    </defs>
+                    {/* Top Faces (Brightest) */}
+                    <path d="M17 6.5 L12 4 L7 6.5 L7 8.5 L12 6 L17 8.5 Z" fill="#2EFF63" />
+                    <path d="M12 11 L14 12 L14 15 L12 14 Z" fill="#2EFF63" />
 
-                    <g>
-                        <path d="M4 6H20L18 10H6L4 6Z" fill="url(#neonGreenLarge)" />
-                        <path d="M4 8V18L8 16V10L4 8Z" fill="url(#neonGreenLarge)" />
-                        <path d="M6 18H14L16 14H8L6 18Z" fill="url(#neonGreenLarge)" />
-                        <path d="M12 14H18L20 10H14L12 14Z" fill="url(#neonGreenLarge)" />
+                    {/* Side Faces (Mid Tone) */}
+                    <path d="M7 6.5 L7 17.5 L10 19 L10 8 L7 6.5 Z" fill="#00C94D" />
+                    <path d="M14 12 L17 10.5 L17 13.5 L14 15 Z" fill="#00C94D" />
 
-                        {/* Highlight for "Glossy" look */}
-                        <path d="M4 6H20L18 10H6L4 6Z" fill="url(#lighting)" style={{ opacity: 0.3 }} />
-                    </g>
+                    {/* Front/Dark Faces (Shadow) */}
+                    <path d="M7 17.5 L12 20 L17 17.5 L17 15.5 L12 18 L7 15.5 Z" fill="#008F35" />
+                    <path d="M17 17.5 L17 13.5 L14 15 L14 19 L17 17.5 Z" fill="#007029" />
+
+                    {/* Inner depth shadows */}
+                    <path d="M10 8 L12 9 L12 14 L10 13 Z" fill="#005C22" />
                 </svg>
             </div>
         ),

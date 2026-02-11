@@ -10,9 +10,10 @@ interface Producto {
     nombre: string
     slug: string
     precio: number
-    precioOferta?: number
+    precioOferta?: number | null
     imagen?: string
     categoria: { nombre: string; slug: string }
+    variantes?: any
 }
 
 interface ProductosCarouselProps {
@@ -38,13 +39,13 @@ export default function ProductosCarousel({ productos, titulo, subtitulo }: Prod
     if (!productos || productos.length === 0) return null
 
     return (
-        <section className="py-12 md:py-16 bg-gray-50 dark:bg-gray-900/50">
+        <section className="py-12 md:py-16 bg-gray-50 dark:bg-[#111]">
             <div className="max-w-7xl mx-auto px-4">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         {subtitulo && (
-                            <span className="text-teal-500 font-bold text-sm uppercase tracking-wider">
+                            <span className="text-[#00AE42] font-bold text-sm uppercase tracking-wider block mb-2">
                                 {subtitulo}
                             </span>
                         )}
@@ -75,9 +76,35 @@ export default function ProductosCarousel({ productos, titulo, subtitulo }: Prod
                     style={{ scrollSnapType: 'x mandatory' }}
                 >
                     {productos.map((producto, index) => {
-                        const descuento = producto.precioOferta
-                            ? Math.round((1 - producto.precioOferta / producto.precio) * 100)
-                            : 0
+                        const precio = producto.precioOferta || producto.precio
+                        const tieneOferta = producto.precioOferta && producto.precioOferta < producto.precio
+                        const descuento = tieneOferta ? Math.round((1 - producto.precioOferta! / producto.precio) * 100) : 0
+
+                        // Variant Logic
+                        const variantGroups = producto.variantes?.groups || [] as any[]
+                        const hasVariants = variantGroups.length > 0
+
+                        let minPrice = precio
+                        if (hasVariants) {
+                            let totalMinExtra = 0
+                            variantGroups.forEach((g: any) => {
+                                if (g.opciones.length > 0) {
+                                    const minExtra = Math.min(...g.opciones.map((o: any) => o.precioExtra))
+                                    totalMinExtra += minExtra
+                                }
+                            })
+                            minPrice = precio + totalMinExtra
+                        }
+
+                        // Fix pluralization: "Tamaño" -> "Tamaños", but "Color" -> "Colores" if handled, 
+                        // simpler: just append 's' if not ending in s, or specific check.
+                        // User image showed "Tamañoss" which implies just appending 's' to "Tamaños". 
+                        // We should fix this. If name is "Tamaño", badge should say "Tamaños".
+                        const formatPlural = (name: string) => {
+                            if (name.toLowerCase() === 'tamaño') return 'Tamaños'
+                            if (name.endsWith('s')) return name
+                            return name + 's'
+                        }
 
                         return (
                             <motion.div
@@ -85,74 +112,69 @@ export default function ProductosCarousel({ productos, titulo, subtitulo }: Prod
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05 }}
-                                className="flex-shrink-0 w-[280px] group"
+                                className="flex-shrink-0 w-[260px] group"
                                 style={{ scrollSnapAlign: 'start' }}
                             >
-                                <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700">
+                                <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-[#00AE42]/10 transition-all duration-300 border border-gray-100 dark:border-gray-800 hover:border-[#00AE42] dark:hover:border-[#00AE42] h-full flex flex-col">
                                     {/* Image */}
-                                    <Link href={`/producto/${producto.slug}`} className="block relative aspect-square overflow-hidden">
-                                        {descuento > 0 && (
-                                            <span className="absolute top-3 left-3 z-10 px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-full">
+                                    <Link href={`/producto/${producto.slug}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-100 dark:bg-[#111]">
+                                        {tieneOferta && (
+                                            <span className="absolute top-3 left-3 z-10 px-2 py-1 bg-[#00AE42] text-white text-[10px] font-bold rounded-sm uppercase tracking-wide">
                                                 -{descuento}%
                                             </span>
                                         )}
-                                        <img
-                                            src={producto.imagen || '/placeholder.jpg'}
-                                            alt={producto.nombre}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                        />
-                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                        {producto.imagen ? (
+                                            <img
+                                                src={producto.imagen}
+                                                alt={producto.nombre}
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-[#111]">
+                                                <span className="text-gray-400 text-xs">Sin imagen</span>
+                                            </div>
+                                        )}
                                     </Link>
 
                                     {/* Content */}
-                                    <div className="p-4">
-                                        <Link href={`/tienda?categoria=${producto.categoria.slug}`} className="text-xs font-medium text-teal-500 hover:text-teal-400 uppercase tracking-wider">
+                                    <div className="p-4 flex-1 flex flex-col">
+                                        <Link href={`/tienda?categoria=${producto.categoria.slug}`} className="text-[10px] font-bold text-[#00AE42] uppercase tracking-wider mb-1">
                                             {producto.categoria.nombre}
                                         </Link>
                                         <Link href={`/producto/${producto.slug}`}>
-                                            <h3 className="font-bold text-gray-900 dark:text-white mt-1 line-clamp-2 hover:text-teal-500 transition-colors">
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-base leading-tight mb-3 line-clamp-2 group-hover:text-[#00AE42] transition-colors">
                                                 {producto.nombre}
                                             </h3>
                                         </Link>
 
-                                        {/* Rating placeholder */}
-                                        <div className="flex items-center gap-1 mt-2">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                            ))}
-                                            <span className="text-xs text-gray-500 ml-1">(12)</span>
-                                        </div>
+                                        {/* Variant Badges */}
+                                        {hasVariants && (
+                                            <div className="flex flex-wrap gap-1 mb-4">
+                                                {variantGroups.slice(0, 2).map((g: any) => (
+                                                    <span key={g.id} className="text-[10px] text-gray-500 border border-gray-700/50 px-2 py-1 rounded-md">
+                                                        {g.opciones.length} {formatPlural(g.nombre)}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
 
                                         {/* Price */}
-                                        <div className="flex items-center justify-between mt-4">
+                                        <div className="mt-auto flex items-end justify-between">
                                             <div>
-                                                {producto.precioOferta ? (
-                                                    <>
-                                                        <span className="text-gray-400 line-through text-sm">
-                                                            ${producto.precio.toLocaleString()}
-                                                        </span>
-                                                        <span className="text-xl font-black text-teal-500 ml-2">
-                                                            ${producto.precioOferta.toLocaleString()}
-                                                        </span>
-                                                    </>
-                                                ) : (
-                                                    <span className="text-xl font-black text-gray-900 dark:text-white">
-                                                        ${producto.precio.toLocaleString()}
-                                                    </span>
+                                                {hasVariants && minPrice !== precio && (
+                                                    <span className="block text-[10px] text-gray-500 font-bold uppercase mb-0.5">DESDE</span>
                                                 )}
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-xl font-black text-gray-900 dark:text-white">
+                                                        ${minPrice.toLocaleString('es-AR')}
+                                                    </span>
+                                                    {tieneOferta && (
+                                                        <span className="text-xs text-gray-400 line-through">
+                                                            ${producto.precio.toLocaleString('es-AR')}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <button
-                                                onClick={() => agregarProducto({
-                                                    id: producto.id,
-                                                    nombre: producto.nombre,
-                                                    precio: producto.precioOferta || producto.precio,
-                                                    imagen: producto.imagen || '',
-                                                    cantidad: 1
-                                                })}
-                                                className="p-3 bg-teal-500 hover:bg-teal-400 text-black rounded-xl transition-colors"
-                                            >
-                                                <ShoppingCart className="w-5 h-5" />
-                                            </button>
                                         </div>
                                     </div>
                                 </div>

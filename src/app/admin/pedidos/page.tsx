@@ -338,7 +338,10 @@ export default function PedidosAdmin() {
                                                 </div>
                                                 <div className="flex-1">
                                                     <div className="font-medium">{item.nombre}</div>
-                                                    <div className="text-sm text-gray-400">x{item.cantidad}</div>
+                                                    <div className="text-sm text-gray-400">
+                                                        x{item.cantidad}
+                                                        {item.variante && <span className="text-[#00AE42] ml-2 font-bold">• {item.variante}</span>}
+                                                    </div>
                                                 </div>
                                                 <div className="font-bold">${(item.precioUnitario * item.cantidad).toLocaleString('es-AR')}</div>
                                             </div>
