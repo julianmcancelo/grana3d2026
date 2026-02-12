@@ -13,7 +13,7 @@ async function getData() {
     ] = await Promise.all([
         prisma.categoria.findMany({ where: { activo: true }, orderBy: { orden: 'asc' } }),
         prisma.producto.findMany({ where: { activo: true, destacado: true }, take: 4, include: { categoria: true } }),
-        prisma.producto.findMany({ where: { activo: true }, take: 8, include: { categoria: true } }),
+        prisma.producto.findMany({ where: { activo: true }, orderBy: { createdAt: 'desc' }, include: { categoria: true } }),
         prisma.configuracion.findMany()
     ])
 
@@ -22,10 +22,22 @@ async function getData() {
         return acc
     }, {})
 
+    // Serialize dates to pass to client component
+    const serializeProduct = (p: any) => ({
+        ...p,
+        createdAt: p.createdAt.toISOString(),
+        updatedAt: p.updatedAt.toISOString(),
+        categoria: {
+            ...p.categoria,
+            createdAt: p.categoria.createdAt.toISOString(),
+            updatedAt: p.categoria.updatedAt.toISOString()
+        }
+    })
+
     return {
         categorias,
-        productosDestacados,
-        todosProductos,
+        productosDestacados: productosDestacados.map(serializeProduct),
+        todosProductos: todosProductos.map(serializeProduct),
         config: {
             modoProximamente: configMap['modoProximamente'] === 'true',
             textoProximamente: configMap['textoProximamente'] || '¡Próximamente!'
@@ -38,7 +50,13 @@ export default async function TiendaPage() {
 
     return (
         <TiendaClient
-            categorias={data.categorias.map((c: any) => ({ ...c, descripcion: c.descripcion || '', imagen: c.imagen || undefined }))}
+            categorias={data.categorias.map((c: any) => ({
+                ...c,
+                descripcion: c.descripcion || '',
+                imagen: c.imagen || undefined,
+                createdAt: c.createdAt.toISOString(),
+                updatedAt: c.updatedAt.toISOString()
+            }))}
             productosDestacados={data.productosDestacados}
             todosProductos={data.todosProductos}
             config={data.config}

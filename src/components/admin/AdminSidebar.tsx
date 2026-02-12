@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import {
     LayoutDashboard, Package, ShoppingBag, Users,
     Ticket, Megaphone, Image, Settings, LogOut, Zap,
-    Shapes, LayoutGrid, Star, Mail, Layers, Briefcase
+    Shapes, LayoutGrid, Star, Mail, Layers, Briefcase, Database
 } from 'lucide-react'
 
 const menuItems = [
@@ -23,6 +23,7 @@ const menuItems = [
     { icon: LayoutGrid, label: 'Homepage', href: '/admin/homepage' },
     { icon: Star, label: 'Reseñas', href: '/admin/resenas' },
     { icon: Settings, label: 'Configuración', href: '/admin/configuracion' },
+    { icon: Database, label: 'Base de Datos', href: '/admin/database' },
 ]
 
 export default function AdminSidebar() {

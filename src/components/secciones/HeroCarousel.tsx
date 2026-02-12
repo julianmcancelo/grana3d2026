@@ -127,7 +127,7 @@ export default function HeroCarousel({ banners }: HeroCarouselProps) {
                                 {banner.textoBoton && banner.linkBoton && (
                                     <Link
                                         href={banner.linkBoton}
-                                        className="px-10 py-4 bg-[#00AE42] hover:bg-[#008a34] text-white font-bold rounded-full transition-all hover:scale-105 shadow-[0_0_20px_rgba(0,174,66,0.3)] hover:shadow-[0_0_30px_rgba(0,174,66,0.5)]"
+                                        className="px-10 py-4 bg-[#00AE42] hover:bg-[#008a34] text-white font-bold rounded-full transition-all hover:scale-105 shadow-[0_0_20px_rgba(0,174,66,0.4)] hover:shadow-[0_0_30px_rgba(0,174,66,0.6)] border border-[#00AE42] hover:border-[#008a34]"
                                     >
                                         {banner.textoBoton}
                                     </Link>
@@ -135,7 +135,7 @@ export default function HeroCarousel({ banners }: HeroCarouselProps) {
                                 {banner.textoBoton2 && banner.linkBoton2 && (
                                     <Link
                                         href={banner.linkBoton2}
-                                        className="px-10 py-4 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm border border-white/10 font-bold rounded-full transition-all hover:scale-105"
+                                        className="px-10 py-4 bg-white/5 hover:bg-white/10 text-white backdrop-blur-md border border-white/20 hover:border-white/40 font-bold rounded-full transition-all hover:scale-105 shadow-lg"
                                     >
                                         {banner.textoBoton2}
                                     </Link>

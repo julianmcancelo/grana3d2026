@@ -1,5 +1,5 @@
 # Base
-FROM public.ecr.aws/docker/library/node:20-alpine AS base
+FROM public.ecr.aws/docker/library/node:22-alpine AS base
 
 # Deps
 FROM base AS deps
@@ -13,36 +13,33 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
 # Generar Prisma Client
 RUN npx prisma generate
+
 # Build Next.js
-# Generar cliente Prisma antes del build para que Next.js lo encuentre
-RUN npx prisma generate
+ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
-# Runner
 # Runner
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
 # Crear usuario
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Instalar dependencias de producción (Standard Build)
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
-
-# Copiar build artifacts
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+# Copiar build artifacts (Standalone Mode)
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
-# Asegurar uploads
-RUN mkdir -p ./public/uploads && chown -R nextjs:nodejs ./public/uploads
-
-# Instalar Prisma CLI para migraciones
+# Instalar Prisma CLI para migraciones (única dependencia necesaria en runner si usas start.sh para db push)
+# Si falla la red, esto podría fallar, pero es menos probable que un npm ci completo.
+# Intentamos usar la caché de npm si es posible o instalarlo explícitamente.
 RUN npm install prisma@6.19.2
 
 # Scripts y utilidades
@@ -50,7 +47,10 @@ RUN apk add --no-cache dos2unix openssl
 COPY start.sh ./
 RUN dos2unix start.sh && chmod +x start.sh
 
-RUN chown -R nextjs:nodejs /app
+# Asegurar permisos en uploads y en toda la carpeta app para evitar errores de Prisma
+RUN mkdir -p ./public/uploads && \
+    chown -R nextjs:nodejs /app
+
 USER nextjs
 
 EXPOSE 3000

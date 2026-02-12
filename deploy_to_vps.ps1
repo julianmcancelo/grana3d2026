@@ -43,6 +43,10 @@ if (Test-Path ".env.production") {
     scp -P $PORT .env.production.example $destEnv
 }
 
+Write-Host "Sincronizando carpeta certbot (SSL/Config)..."
+$destCertbot = "$USER@$HOST_IP`:$REMOTE_PATH"
+scp -P $PORT -r certbot $destCertbot
+
 Write-Host "Desplegando contenedores en el VPS..."
 ssh -p $PORT $USER@$HOST_IP "cd $REMOTE_PATH && docker compose down && docker compose pull && docker compose up -d"
 

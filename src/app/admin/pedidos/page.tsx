@@ -24,6 +24,8 @@ interface Pedido {
     origen?: 'WEB' | 'MERCADOLIBRE' | 'INSTAGRAM' | 'LOCAL'
     items: any[]
     createdAt: string
+    codigoSeguimiento?: string
+    empresaEnvio?: string
 }
 
 const estadoColores: Record<string, { bg: string, text: string, icon: any }> = {
@@ -49,6 +51,8 @@ export default function PedidosAdmin() {
     const [actualizando, setActualizando] = useState<string | null>(null)
     const [qrModal, setQrModal] = useState<{ abierto: boolean; codigo: string; mensaje?: string }>({ abierto: false, codigo: '' })
     const [modalNuevoPedido, setModalNuevoPedido] = useState(false)
+    const [trackingForm, setTrackingForm] = useState<{ codigoSeguimiento: string; empresaEnvio: string }>({ codigoSeguimiento: '', empresaEnvio: '' })
+    const [guardandoTracking, setGuardandoTracking] = useState(false)
 
     useEffect(() => {
         cargarPedidos()
@@ -74,6 +78,33 @@ export default function PedidosAdmin() {
             console.error('Error actualizando estado:', error)
         } finally {
             setActualizando(null)
+        }
+    }
+
+    const guardarTracking = async (pedidoId: string) => {
+        setGuardandoTracking(true)
+        try {
+            await api.put(`/admin/pedidos/${pedidoId}`, {
+                estado: 'ENVIADO',
+                codigoSeguimiento: trackingForm.codigoSeguimiento,
+                empresaEnvio: trackingForm.empresaEnvio
+            })
+            await cargarPedidos()
+            // Update the modal selection too
+            if (pedidoSeleccionado?.id === pedidoId) {
+                setPedidoSeleccionado(prev => prev ? {
+                    ...prev,
+                    estado: 'ENVIADO',
+                    codigoSeguimiento: trackingForm.codigoSeguimiento,
+                    empresaEnvio: trackingForm.empresaEnvio
+                } : null)
+            }
+            Swal.fire({ icon: 'success', title: 'Tracking guardado', text: 'Se envió un email al cliente con el código de seguimiento.', timer: 3000 })
+        } catch (error) {
+            console.error('Error guardando tracking:', error)
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el tracking' })
+        } finally {
+            setGuardandoTracking(false)
         }
     }
 
@@ -242,6 +273,13 @@ export default function PedidosAdmin() {
                                     <div className="text-xs text-gray-500 mt-1">
                                         {Array.isArray(pedido.items) ? pedido.items.length : 0} producto(s) • {pedido.metodoPago}
                                     </div>
+                                    {pedido.codigoSeguimiento && (
+                                        <div className="flex items-center gap-1 mt-1 text-xs text-teal-400 font-mono">
+                                            <Truck className="w-3 h-3" />
+                                            {pedido.empresaEnvio && <span className="text-gray-500">{pedido.empresaEnvio}:</span>}
+                                            {pedido.codigoSeguimiento}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -369,6 +407,65 @@ export default function PedidosAdmin() {
                                         <div className="text-gray-400 mb-1">Método de envío</div>
                                         <div className="font-bold">{pedidoSeleccionado.metodoEnvio || 'No especificado'}</div>
                                     </div>
+                                </div>
+
+                                {/* Tracking */}
+                                <div>
+                                    <h3 className="text-sm font-bold text-gray-400 mb-3 flex items-center gap-2">
+                                        <Truck className="w-4 h-4" /> SEGUIMIENTO DE ENVÍO
+                                    </h3>
+                                    {pedidoSeleccionado.codigoSeguimiento ? (
+                                        <div className="bg-teal-500/10 border border-teal-500/20 p-4 rounded-xl space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-400 text-sm">Empresa</span>
+                                                <span className="font-bold text-white">{pedidoSeleccionado.empresaEnvio || '-'}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-400 text-sm">Código</span>
+                                                <span className="font-mono font-bold text-teal-400">{pedidoSeleccionado.codigoSeguimiento}</span>
+                                            </div>
+                                            <div className="pt-2 border-t border-white/5">
+                                                <a
+                                                    href={`/seguimiento?codigo=${pedidoSeleccionado.codigoSeguimiento}`}
+                                                    target="_blank"
+                                                    className="text-xs text-teal-400 hover:underline"
+                                                >
+                                                    🔗 Ver página pública de seguimiento
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-black/30 p-4 rounded-xl space-y-3">
+                                            <select
+                                                value={trackingForm.empresaEnvio}
+                                                onChange={(e) => setTrackingForm(prev => ({ ...prev, empresaEnvio: e.target.value }))}
+                                                className="w-full px-3 py-2 bg-black border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-teal-500"
+                                            >
+                                                <option value="">Seleccionar empresa...</option>
+                                                <option value="Correo Argentino">Correo Argentino</option>
+                                                <option value="Andreani">Andreani</option>
+                                                <option value="OCA">OCA</option>
+                                                <option value="Via Cargo">Vía Cargo</option>
+                                                <option value="Cruz del Sur">Cruz del Sur</option>
+                                                <option value="Otro">Otro</option>
+                                            </select>
+                                            <input
+                                                type="text"
+                                                placeholder="Código de seguimiento..."
+                                                value={trackingForm.codigoSeguimiento}
+                                                onChange={(e) => setTrackingForm(prev => ({ ...prev, codigoSeguimiento: e.target.value }))}
+                                                className="w-full px-3 py-2 bg-black border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 font-mono"
+                                            />
+                                            <button
+                                                onClick={() => guardarTracking(pedidoSeleccionado.id)}
+                                                disabled={!trackingForm.codigoSeguimiento || guardandoTracking}
+                                                className="w-full px-4 py-2.5 bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                {guardandoTracking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Truck className="w-4 h-4" />}
+                                                {guardandoTracking ? 'Guardando...' : 'Guardar y Notificar Cliente'}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>

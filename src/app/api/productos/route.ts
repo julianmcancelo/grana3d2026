@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
             esPreventa, fechaLlegada, tiempoProduccion
         } = body
 
-        if (!nombre || !precio) {
+        if (!nombre || precio === undefined || precio === null || precio === '') {
             return NextResponse.json({ error: 'Nombre y precio son requeridos' }, { status: 400 })
         }
 

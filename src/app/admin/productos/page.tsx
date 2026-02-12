@@ -6,7 +6,8 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import {
     Plus, Search, Edit2, Trash2, Package,
-    Eye, EyeOff, X, Loader2, Upload
+    Eye, EyeOff, X, Loader2, Upload,
+    ArrowRight, ArrowLeft, Info
 } from 'lucide-react'
 import api from '@/lib/api'
 import ImageUpload from '@/components/admin/ImageUpload'
@@ -51,6 +52,10 @@ function ProductosContent() {
     const [modalAbierto, setModalAbierto] = useState(false)
     const [editando, setEditando] = useState<Producto | null>(null)
     const [guardando, setGuardando] = useState(false)
+
+    // Wizard State
+    const [step, setStep] = useState(1)
+    const [tieneVariantes, setTieneVariantes] = useState(false)
 
     const [form, setForm] = useState({
         nombre: '',
@@ -117,6 +122,7 @@ function ProductosContent() {
                 sumaCupoMayorista: (producto as any).sumaCupoMayorista || false,
                 variantes: (producto.variantes as any)?.groups || []
             })
+            setTieneVariantes(!!(producto.variantes))
         } else {
             setEditando(null)
             setForm({
@@ -137,7 +143,9 @@ function ProductosContent() {
                 sumaCupoMayorista: false,
                 variantes: []
             })
+            setTieneVariantes(false)
         }
+        setStep(1) // Reset step
         setModalAbierto(true)
     }
 
@@ -155,13 +163,31 @@ function ProductosContent() {
             const imagenesFinales = form.imagenes.length > 0 ? form.imagenes : (form.imagen ? [form.imagen] : [])
             const imagenPrincipal = imagenesFinales.length > 0 ? imagenesFinales[0] : null
 
+            let precioFinal = parseFloat(form.precio) || 0
+            let stockFinal = parseInt(form.stock) || 0
+
+            // Si tiene variantes, calculamos precio mínimo y stock total
+            if (tieneVariantes && form.variantes && form.variantes.length > 0) {
+                // Stock: Suma de las opciones del primer grupo
+                if (form.variantes[0]?.opciones) {
+                    stockFinal = form.variantes[0].opciones.reduce((acc: number, opt: any) => acc + (parseInt(opt.stock) || 0), 0)
+                }
+
+                // Precio: El mínimo de todas las opciones configuradas
+                const allOptions = form.variantes.flatMap((g: any) => g.opciones)
+                if (allOptions.length > 0) {
+                    // Tomamos el precioExtra como el precio final ya que basePrice es 0 en este modo
+                    precioFinal = Math.min(...allOptions.map((o: any) => parseFloat(o.precioExtra) || 0))
+                }
+            }
+
             const datos = {
                 nombre: form.nombre,
                 descripcion: form.descripcion || 'Producto sin descripción',
-                precio: parseFloat(form.precio),
+                precio: precioFinal,
                 precioOferta: form.precioOferta ? parseFloat(form.precioOferta) : null,
                 precioMayorista: form.precioMayorista ? parseFloat(form.precioMayorista) : null,
-                stock: parseInt(form.stock) || 0,
+                stock: stockFinal,
                 categoriaId: form.categoriaId,
                 imagen: imagenPrincipal,
                 imagenes: imagenesFinales,
@@ -363,7 +389,7 @@ function ProductosContent() {
                 )}
             </div>
 
-            {/* Modal Crear/Editar */}
+            {/* Modal Crear/Editar (Wizard) */}
             <AnimatePresence>
                 {modalAbierto && (
                     <>
@@ -372,202 +398,352 @@ function ProductosContent() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={cerrarModal}
-                            className="fixed inset-0 bg-black/80 z-50"
+                            className="fixed inset-0 bg-black/80 z-50 backdrop-blur-sm"
                         />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
                         >
-                            <div className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                                <div className="flex items-center justify-between p-6 border-b border-white/10">
-                                    <h2 className="text-xl font-bold">{editando ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-                                    <button onClick={cerrarModal} className="p-2 hover:bg-white/10 rounded-lg">
+                            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col pointer-events-auto shadow-2xl shadow-black/50">
+                                {/* Header */}
+                                <div className="flex items-center justify-between p-6 border-b border-white/5 shrink-0">
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white">{editando ? 'Editar Producto' : 'Nuevo Producto'}</h2>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <div className={`h-1.5 w-8 rounded-full transition-colors ${step === 1 ? 'bg-teal-500' : 'bg-teal-500/30'}`} />
+                                            <div className={`h-1.5 w-8 rounded-full transition-colors ${step === 2 ? 'bg-teal-500' : 'bg-white/10'}`} />
+                                            <span className="text-xs text-gray-500 ml-2">Paso {step} de 2</span>
+                                        </div>
+                                    </div>
+                                    <button onClick={cerrarModal} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors">
                                         <X className="w-5 h-5" />
                                     </button>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">Nombre *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={form.nombre}
-                                            onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                                            className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
-                                        />
-                                    </div>
-
-                                    <MarkdownEditor
-                                        value={form.descripcion}
-                                        onChange={(val) => setForm({ ...form, descripcion: val })}
-                                        label="Descripción Detallada (Soporta imágenes, listas, negritas...)"
-                                    />
-
-                                    <ImageUpload
-                                        value={form.imagenes}
-                                        onChange={(urls: string | string[]) => setForm({ ...form, imagenes: Array.isArray(urls) ? urls : [urls] })}
-                                        label="Galería de Imágenes (La primera es la principal)"
-                                        multiple={true}
-                                    />
-                                    <p className="text-xs text-gray-500 mt-2">Sube múltiples imágenes. La primera será la portada.</p>
-
-                                    {/* --- SECCIÓN VARIANTES --- */}
-                                    <div className="mt-8 border-t border-gray-800 pt-6">
-                                        <VariantsManager
-                                            variantes={form.variantes}
-                                            onChange={(newVariantes) => setForm({ ...form, variantes: newVariantes })}
-                                            basePrice={Number(form.precio) || 0}
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-800">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-1">Precio *</label>
-                                            <input
-                                                type="number"
-                                                required
-                                                value={form.precio}
-                                                onChange={(e) => setForm({ ...form, precio: e.target.value })}
-                                                className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-1">Precio Oferta</label>
-                                            <input
-                                                type="number"
-                                                value={form.precioOferta}
-                                                onChange={(e) => setForm({ ...form, precioOferta: e.target.value })}
-                                                className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-emerald-400 mb-1">Precio Mayorista</label>
-                                            <input
-                                                type="number"
-                                                value={form.precioMayorista}
-                                                onChange={(e) => setForm({ ...form, precioMayorista: e.target.value })}
-                                                className="w-full px-4 py-3 bg-black border border-emerald-500/30 rounded-xl text-white focus:outline-none focus:border-emerald-500"
-                                                placeholder="Opcional"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-1">Stock</label>
-                                            <input
-                                                type="number"
-                                                value={form.stock}
-                                                onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                                                className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-1">Categoría</label>
-                                            <select
-                                                value={form.categoriaId}
-                                                onChange={(e) => setForm({ ...form, categoriaId: e.target.value })}
-                                                className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                                {/* Body */}
+                                <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                                    <form id="product-form" onSubmit={handleSubmit}>
+                                        {step === 1 ? (
+                                            <motion.div
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: 20 }}
+                                                className="space-y-6"
                                             >
-                                                <option value="">Sin categoría</option>
-                                                {categorias.map(cat => (
-                                                    <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
+                                                {/* Paso 1: Información General */}
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-gray-300 mb-1.5">Nombre del Producto <span className="text-red-500">*</span></label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={form.nombre}
+                                                            onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                                                            placeholder="Ej: Filamento PLA Grana3D"
+                                                            className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all"
+                                                        />
+                                                    </div>
 
-                                    <div className="bg-gray-800/50 p-4 rounded-xl border border-white/5 space-y-4">
-                                        <label className="flex items-center gap-3 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={form.esPreventa}
-                                                onChange={(e) => setForm({ ...form, esPreventa: e.target.checked })}
-                                                className="w-5 h-5 rounded border-white/10 bg-black accent-teal-500"
-                                            />
-                                            <div>
-                                                <span className="block text-sm font-bold text-white">Es Preventa</span>
-                                                <span className="text-xs text-gray-400">El producto aún no está en stock físico inmediato.</span>
-                                            </div>
-                                        </label>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-sm font-bold text-gray-300 mb-1.5">Categoría <span className="text-red-500">*</span></label>
+                                                            <div className="relative">
+                                                                <select
+                                                                    value={form.categoriaId}
+                                                                    onChange={(e) => setForm({ ...form, categoriaId: e.target.value })}
+                                                                    className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white appearance-none focus:outline-none focus:border-teal-500 transition-all cursor-pointer"
+                                                                >
+                                                                    <option value="">Seleccionar categoría...</option>
+                                                                    {categorias.map(cat => (
+                                                                        <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                                                                    ))}
+                                                                </select>
+                                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                                    <div className="border-t-[4px] border-t-white/30 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-end pb-3">
+                                                            <div className="flex gap-4 w-full">
+                                                                <label className="flex items-center gap-2 cursor-pointer group">
+                                                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${form.activo ? 'bg-teal-500 border-teal-500' : 'border-white/20 bg-[#111]'}`}>
+                                                                        {form.activo && <CheckMark className="w-3.5 h-3.5 text-black" />}
+                                                                    </div>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={form.activo}
+                                                                        onChange={(e) => setForm({ ...form, activo: e.target.checked })}
+                                                                        className="hidden"
+                                                                    />
+                                                                    <span className="text-sm text-gray-400 group-hover:text-white transition-colors">Activo</span>
+                                                                </label>
 
-                                        {form.esPreventa && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-400 mb-1">Fecha Estimada de Llegada</label>
-                                                <input
-                                                    type="date"
-                                                    value={form.fechaLlegada}
-                                                    onChange={(e) => setForm({ ...form, fechaLlegada: e.target.value })}
-                                                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
-                                                />
-                                            </div>
+                                                                <label className="flex items-center gap-2 cursor-pointer group">
+                                                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${form.destacado ? 'bg-amber-500 border-amber-500' : 'border-white/20 bg-[#111]'}`}>
+                                                                        {form.destacado && <CheckMark className="w-3.5 h-3.5 text-black" />}
+                                                                    </div>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={form.destacado}
+                                                                        onChange={(e) => setForm({ ...form, destacado: e.target.checked })}
+                                                                        className="hidden"
+                                                                    />
+                                                                    <span className="text-sm text-gray-400 group-hover:text-white transition-colors">Destacado</span>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-gray-300 mb-1.5">Descripción</label>
+                                                        <div className="border border-white/10 rounded-xl overflow-hidden focus-within:border-teal-500/50 transition-colors">
+                                                            <MarkdownEditor
+                                                                value={form.descripcion}
+                                                                onChange={(val) => setForm({ ...form, descripcion: val })}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-gray-300 mb-1.5">Imágenes</label>
+                                                        <ImageUpload
+                                                            value={form.imagenes}
+                                                            onChange={(urls) => setForm({
+                                                                ...form,
+                                                                imagenes: Array.isArray(urls) ? urls : [urls],
+                                                                imagen: Array.isArray(urls) && urls.length > 0 ? urls[0] : (typeof urls === 'string' ? urls : '')
+                                                            })}
+                                                            label="Arrastrá imágenes aquí o click para subir"
+                                                            multiple={true}
+                                                        />
+                                                        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                                                            <Eye className="w-3 h-3" /> La primera imagen será la portada.
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                                                        <label className="flex items-center gap-3 cursor-pointer">
+                                                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${form.esPreventa ? 'bg-purple-500 border-purple-500' : 'border-white/20 bg-[#111]'}`}>
+                                                                {form.esPreventa && <CheckMark className="w-3.5 h-3.5 text-white" />}
+                                                            </div>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={form.esPreventa}
+                                                                onChange={(e) => setForm({ ...form, esPreventa: e.target.checked })}
+                                                                className="hidden"
+                                                            />
+                                                            <div>
+                                                                <span className="font-bold text-sm text-white block">Es Preventa</span>
+                                                                <span className="text-xs text-gray-400 block">El producto aún no está en stock físico inmediato.</span>
+                                                            </div>
+                                                        </label>
+
+                                                        {form.esPreventa && (
+                                                            <motion.div
+                                                                initial={{ height: 0, opacity: 0 }}
+                                                                animate={{ height: 'auto', opacity: 1 }}
+                                                                className="grid grid-cols-2 gap-4 mt-4 overflow-hidden"
+                                                            >
+                                                                <div>
+                                                                    <label className="block text-xs font-bold text-gray-400 mb-1">Fecha Estimada de Llegada</label>
+                                                                    <input
+                                                                        type="date"
+                                                                        value={form.fechaLlegada}
+                                                                        onChange={(e) => setForm({ ...form, fechaLlegada: e.target.value })}
+                                                                        className="w-full px-3 py-2 bg-black border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-bold text-gray-400 mb-1">Tiempo de Producción</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={form.tiempoProduccion}
+                                                                        onChange={(e) => setForm({ ...form, tiempoProduccion: e.target.value })}
+                                                                        placeholder="Ej: 48-72 hs hábiles"
+                                                                        className="w-full px-3 py-2 bg-black border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+                                                                    />
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ) : (
+                                            <motion.div
+                                                initial={{ opacity: 0, x: 20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -20 }}
+                                                className="space-y-6"
+                                            >
+                                                {/* Paso 2: Variantes y Precios */}
+
+                                                {/* Selector Tipo Producto */}
+                                                <div className="bg-[#111] border border-white/10 rounded-xl p-1 flex">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setTieneVariantes(false)}
+                                                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!tieneVariantes ? 'bg-teal-500 text-black shadow-lg shadow-teal-500/20' : 'text-gray-400 hover:text-white'}`}
+                                                    >
+                                                        Producto Simple
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setTieneVariantes(true)}
+                                                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${tieneVariantes ? 'bg-teal-500 text-black shadow-lg shadow-teal-500/20' : 'text-gray-400 hover:text-white'}`}
+                                                    >
+                                                        Producto con Variantes
+                                                    </button>
+                                                </div>
+
+                                                <AnimatePresence mode="wait">
+                                                    {!tieneVariantes ? (
+                                                        <motion.div
+                                                            key="simple"
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: -10 }}
+                                                            className="space-y-6"
+                                                        >
+                                                            <div className="grid grid-cols-2 gap-6">
+                                                                <div className="bg-white/5 border border-white/5 rounded-xl p-5">
+                                                                    <label className="block text-sm font-bold text-gray-400 mb-1">Precio Base <span className="text-red-500">*</span></label>
+                                                                    <div className="relative">
+                                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                                                                        <input
+                                                                            type="number"
+                                                                            required={!tieneVariantes}
+                                                                            value={form.precio}
+                                                                            onChange={(e) => setForm({ ...form, precio: e.target.value })}
+                                                                            className="w-full pl-7 pr-4 py-3 bg-black border border-white/10 rounded-xl text-white font-mono focus:outline-none focus:border-teal-500 text-lg"
+                                                                            placeholder="0.00"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="bg-white/5 border border-white/5 rounded-xl p-5">
+                                                                    <label className="block text-sm font-bold text-gray-400 mb-1">Stock Inicial</label>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={form.stock}
+                                                                        onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                                                                        className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white font-mono focus:outline-none focus:border-teal-500 text-lg"
+                                                                        placeholder="0"
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Precios Avanzados */}
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div>
+                                                                    <label className="block text-xs font-bold text-green-400 mb-1">Precio Oferta (Opcional)</label>
+                                                                    <div className="relative">
+                                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">$</span>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={form.precioOferta}
+                                                                            onChange={(e) => setForm({ ...form, precioOferta: e.target.value })}
+                                                                            className="w-full pl-6 pr-3 py-2 bg-black border border-green-500/20 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-green-500"
+                                                                            placeholder="0.00"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-bold text-blue-400 mb-1">Precio Mayorista (Opcional)</label>
+                                                                    <div className="relative">
+                                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">$</span>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={form.precioMayorista}
+                                                                            onChange={(e) => setForm({ ...form, precioMayorista: e.target.value })}
+                                                                            className="w-full pl-6 pr-3 py-2 bg-black border border-blue-500/20 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
+                                                                            placeholder="0.00"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
+                                                    ) : (
+                                                        <motion.div
+                                                            key="variants"
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: -10 }}
+                                                            className="space-y-4"
+                                                        >
+                                                            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 flex gap-3 items-start">
+                                                                <div className="p-1 bg-yellow-500/20 rounded-lg shrink-0">
+                                                                    <Info className="w-4 h-4 text-yellow-500" />
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-yellow-500 font-bold text-sm">Modo Variantes Activado</h4>
+                                                                    <p className="text-xs text-gray-400 mt-1">
+                                                                        El precio y stock se gestionan individualmente por cada variante.
+                                                                        El sistema tomará automáticamente el <strong>precio más bajo</strong> como base.
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+
+                                                            <VariantsManager
+                                                                variantes={form.variantes}
+                                                                onChange={(newVariantes) => setForm({ ...form, variantes: newVariantes })}
+                                                                basePrice={0} // No base price needed here
+                                                            />
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </motion.div>
                                         )}
+                                    </form>
+                                </div>
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-1">Tiempo de Producción / Entrega</label>
-                                            <input
-                                                type="text"
-                                                value={form.tiempoProduccion}
-                                                onChange={(e) => setForm({ ...form, tiempoProduccion: e.target.value })}
-                                                placeholder="Ej: 48-72 hs hábiles"
-                                                className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl text-white focus:outline-none focus:border-teal-500"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <ImageUpload
-                                        value={form.imagenes}
-                                        onChange={(urls) => setForm({
-                                            ...form,
-                                            imagenes: Array.isArray(urls) ? urls : [urls],
-                                            imagen: Array.isArray(urls) && urls.length > 0 ? urls[0] : (typeof urls === 'string' ? urls : '')
-                                        })}
-                                        label="Galería de Imágenes (La primera es la principal)"
-                                        multiple={true}
-                                    />
-
-                                    <div className="flex gap-6 pt-2">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={form.activo}
-                                                onChange={(e) => setForm({ ...form, activo: e.target.checked })}
-                                                className="w-5 h-5 rounded border-white/10 bg-black accent-teal-500"
-                                            />
-                                            <span className="text-sm text-gray-400">Activo</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={form.destacado}
-                                                onChange={(e) => setForm({ ...form, destacado: e.target.checked })}
-                                                className="w-5 h-5 rounded border-white/10 bg-black accent-teal-500"
-                                            />
-                                            <span className="text-sm text-gray-400">Destacado</span>
-                                        </label>
-                                    </div>
-
-                                    <div className="flex gap-3 pt-4">
+                                {/* Footer (Actions) */}
+                                <div className="p-6 border-t border-white/5 flex items-center justify-between shrink-0 bg-[#0a0a0a]">
+                                    {step === 2 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setStep(1)}
+                                            className="px-6 py-3 text-gray-400 hover:text-white font-bold text-sm transition-colors flex items-center gap-2"
+                                        >
+                                            <ArrowLeft className="w-4 h-4" /> Volver
+                                        </button>
+                                    )}
+                                    <div className="flex gap-3 ml-auto w-full md:w-auto">
                                         <button
                                             type="button"
                                             onClick={cerrarModal}
-                                            className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition-colors"
+                                            className="flex-1 md:flex-none px-6 py-3 bg-white/5 hover:bg-white/10 text-gray-400 rounded-xl font-bold transition-colors"
                                         >
                                             Cancelar
                                         </button>
-                                        <button
-                                            type="submit"
-                                            disabled={guardando}
-                                            className="flex-1 py-3 bg-teal-500 hover:bg-teal-600 text-black rounded-xl font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                                        >
-                                            {guardando && <Loader2 className="w-4 h-4 animate-spin" />}
-                                            {editando ? 'Guardar Cambios' : 'Crear Producto'}
-                                        </button>
+                                        {step === 1 ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    // Validate Step 1
+                                                    const formEl = document.getElementById('product-form') as HTMLFormElement
+                                                    if (formEl.checkValidity()) {
+                                                        setStep(2)
+                                                    } else {
+                                                        formEl.reportValidity()
+                                                    }
+                                                }}
+                                                className="flex-1 md:flex-none px-8 py-3 bg-teal-500 hover:bg-teal-600 text-black rounded-xl font-bold transition-colors shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2"
+                                            >
+                                                Siguiente <ArrowRight className="w-4 h-4" />
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={handleSubmit} // Submit form
+                                                disabled={guardando}
+                                                className="flex-1 md:flex-none px-8 py-3 bg-teal-500 hover:bg-teal-600 text-black rounded-xl font-bold transition-colors shadow-lg shadow-teal-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                            >
+                                                {guardando && <Loader2 className="w-4 h-4 animate-spin" />}
+                                                {editando ? 'Guardar Cambios' : 'Crear Producto'}
+                                            </button>
+                                        )}
                                     </div>
-                                </form>
+                                </div>
                             </div>
                         </motion.div>
                     </>
@@ -576,6 +752,7 @@ function ProductosContent() {
         </div>
     )
 }
+
 
 export default function ProductosAdmin() {
     return (
@@ -586,5 +763,13 @@ export default function ProductosAdmin() {
         }>
             <ProductosContent />
         </Suspense>
+    )
+}
+
+function CheckMark({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
     )
 }

@@ -8,6 +8,7 @@ interface ItemCarrito {
     cantidad: number
     imagen: string
     variante?: string
+    categoria?: { nombre: string; slug: string }
 }
 
 interface CarritoContextType {

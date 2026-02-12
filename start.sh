@@ -32,8 +32,8 @@ else
     echo "⚠️ DATABASE_URL no definida. Saltando db push."
 fi
 
-echo "🔄 Generando Prisma Client (Runtime)..."
-npx prisma generate || exit 1
+# Sincronización se hace arriba, no necesitamos generar el cliente aquí
+# ya que fue generado en la etapa de build y está en el bundle standalone.
 
-echo "🟢 Iniciando aplicación (Standard Mode)..."
-exec npm start
+echo "🟢 Iniciando aplicación (Standalone Mode)..."
+node server.js
